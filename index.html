@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoreo FEN - Sitios Arqueológicos Lambayeque</title>
+    <!-- Leaflet CSS y JS para el Mapa -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Bootstrap para diseño móvil -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        #map { height: 60vh; width: 100%; }
+        .card-budget { margin-top: 20px; }
+        .badge-alta { background-color: #dc3545; color: white; }
+        .badge-media { background-color: #ffc107; color: black; }
+        .badge-baja { background-color: #28a745; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row mt-3">
+        <div class="col-12 text-center">
+            <h3>Monitoreo de Proyectos FEN</h3>
+            <p class="text-muted">Región Lambayeque - Sitios Arqueológicos</p>
+        </div>
+    </div>
+
+    <!-- Mapa -->
+    <div class="row">
+        <div class="col-12">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <!-- Panel de Control y Presupuesto -->
+    <div class="row card-budget">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    Filtros y Leyenda
+                </div>
+                <div class="card-body">
+                    <p><span class="badge badge-alta">Alta</span> Prioridad Alta</p>
+                    <p><span class="badge badge-media">Media</span> Prioridad Media</p>
+                    <p><span class="badge badge-baja">Baja</span> Prioridad Baja</p>
+                    <hr>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="toggleContractual">
+                        <label class="form-check-label" for="toggleContractual">Mostrar Presupuesto Contractual</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    Presupuesto Total Programado: S/ 1,964,571.12
+                </div>
+                <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-sm" id="budgetTable">
+                        <thead>
+                            <tr>
+                                <th>Sitio</th>
+                                <th>Programado</th>
+                                <th class="contractual-col" style="display:none;">Contractual</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Los datos se llenarán con JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Inicializar el mapa centrado en Lambayeque
+    var map = L.map('map').setView([-6.7, -79.8], 9);
+
+    // Capa base (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Datos de los sitios (Coordenadas aproximadas extraídas del mapa, reemplazar con UTM si se tienen)
+    var sitios = [
+        { id: 1, nombre: "C. A. Huaca Bandera", lat: -6.45, lng: -79.85, prioridad: "Alta", prog: 121351.21, cont: 0 },
+        { id: 2, nombre: "C. A. Jotoro", lat: -6.50, lng: -79.75, prioridad: "Alta", prog: 81546.30, cont: 0 },
+        { id: 3, nombre: "C. A. Chotuna Chornancap", lat: -6.75, lng: -79.95, prioridad: "Alta", prog: 142100.44, cont: 0 },
+        { id: 4, nombre: "Museo Nacional Bruning", lat: -6.78, lng: -79.90, prioridad: "Media", prog: 146771.69, cont: 0 },
+        { id: 5, nombre: "Museo Tumbas Reales de Sipán", lat: -6.80, lng: -79.88, prioridad: "Media", prog: 89888.33, cont: 0 },
+        { id: 6, nombre: "Huaca Larga (Túcume)", lat: -6.52, lng: -79.85, prioridad: "Media", prog: 120139.80, cont: 0 },
+        { id: 7, nombre: "Huaca La Pintada", lat: -6.55, lng: -79.80, prioridad: "Media", prog: 24812.51, cont: 0 },
+        { id: 8, nombre: "C. A. Huaca Rajada", lat: -6.82, lng: -79.65, prioridad: "Alta", prog: 347105.17, cont: 0 },
+        { id: 9, nombre: "C. A. Cerro Pátapo", lat: -6.70, lng: -79.60, prioridad: "Alta", prog: 69648.42, cont: 0 },
+        { id: 10, nombre: "Huaca Santa Rosa", lat: -6.85, lng: -79.70, prioridad: "Media", prog: 62892.43, cont: 0 },
+        { id: 11, nombre: "C. A. Cerro Ventarrón", lat: -6.75, lng: -79.55, prioridad: "Baja", prog: 74436.55, cont: 0 }
+    ];
+
+    // Colores según prioridad
+    var colores = {
+        "Alta": "#dc3545", // Rojo
+        "Media": "#ffc107", // Amarillo
+        "Baja": "#28a745" // Verde
+    };
+
+    var tableBody = document.querySelector("#budgetTable tbody");
+
+    // Recorrer sitios y agregar al mapa y a la tabla
+    sitios.forEach(function(sitio) {
+        // Crear marcador circular personalizado
+        var circle = L.circleMarker([sitio.lat, sitio.lng], {
+            color: 'white',
+            fillColor: colores[sitio.prioridad],
+            fillOpacity: 1,
+            radius: 10,
+            weight: 2
+        }).addTo(map);
+
+        // Popup con información
+        circle.bindPopup(`
+            <b>${sitio.nombre}</b><br>
+            Prioridad: <span style="color:${colores[sitio.prioridad]}; font-weight:bold;">${sitio.prioridad}</span><br>
+            Ppto. Programado: S/ ${sitio.prog.toLocaleString('es-PE', {minimumFractionDigits: 2})}
+        `);
+
+        // Agregar a la tabla
+        var row = `
+            <tr>
+                <td>${sitio.nombre}</td>
+                <td>S/ ${sitio.prog.toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
+                <td class="contractual-col" style="display:none;">S/ ${sitio.cont.toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
+            </tr>
+        `;
+        tableBody.innerHTML += row;
+    });
+
+    // Lógica para mostrar/ocultar el presupuesto contractual
+    document.getElementById('toggleContractual').addEventListener('change', function() {
+        var cols = document.querySelectorAll('.contractual-col');
+        cols.forEach(function(col) {
+            col.style.display = this.checked ? 'table-cell' : 'none';
+        });
+    });
+
+</script>
+
+</body>
+</html>
