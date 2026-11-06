@@ -30,7 +30,6 @@
         .contrato-input { width: 85px !important; padding: 0.25rem 0.5rem; text-align: right; }
         .form-control-sm { font-size: 16px; }
         
-        /* Bloquear inputs cuando no está en modo edición */
         .modo-lectura .contrato-input, .modo-lectura .avance-input {
             pointer-events: none;
             background-color: transparent;
@@ -41,9 +40,8 @@
             text-align: center;
         }
         .modo-lectura .contrato-input { text-align: right; }
-        .modo-lectura .input-group-text { display: none; } /* Ocultar el % */
+        .modo-lectura .input-group-text { display: none; }
 
-        /* Estilos de los Tooltips e Íconos */
         .leaflet-tooltip { background: rgba(255, 255, 255, 0.95); border: 1px solid #ccc; border-radius: 4px; box-shadow: 1px 1px 4px rgba(0,0,0,0.3); font-size: 11px; font-weight: bold; padding: 2px 6px; white-space: nowrap; pointer-events: none; }
         .custom-icon { display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-family: Arial, sans-serif; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
         .icon-circle { border-radius: 50%; width: 26px; height: 26px; font-size: 10px; }
@@ -169,6 +167,7 @@
             let iconHtml = `<div class="custom-icon ${claseForma} ${claseColor}"><span>${letraIcono}</span></div>`;
             var customIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [26, 26], iconAnchor: [13, 13] });
 
+            // Mantenemos los valores actuales en variables
             let contratoVal = sitio.contrato || 0;
             let avanceVal = sitio.avance || 0;
 
@@ -176,19 +175,22 @@
             
             marker.bindTooltip(sitio.nombre, { permanent: true, direction: 'right', className: 'custom-tooltip', offset: [15, 0] });
 
-            marker.bindPopup(`
+            // Función para generar el HTML del popup (para actualizarlo fácilmente)
+            const generarPopupHTML = (avance, contrato) => `
                 <div style="font-size: 13px; min-width: 180px;">
                     <b>${sitio.nombre}</b><br>
                     <span class="text-muted">Distrito: ${sitio.distrito}</span><br><hr style="margin: 6px 0;">
                     <b>Prioridad:</b> <span class="popup-highlight-badge" style="background-color: ${colorPrioridadHex}; color: ${sitio.prioridad === 'MEDIA' ? 'black' : 'white'};">${sitio.prioridad}</span><br>
                     <b>Ppto Prog:</b> S/ ${sitio.prog.toLocaleString('es-PE')}<br>
-                    <b>Ppto Contr:</b> S/ ${Number(contratoVal).toLocaleString('es-PE')}<br>
+                    <b>Ppto Contr:</b> S/ ${Number(contrato).toLocaleString('es-PE')}<br>
                     <div style="margin-top: 8px; background: #e9ecef; padding: 6px; border-radius: 6px; text-align: center;">
                         <span style="font-size: 11px; text-transform: uppercase; color: #6c757d;">Avance Actual</span>
-                        <span class="popup-highlight-avance" id="popup-avance-${sitio.id}">${avanceVal}%</span>
+                        <span class="popup-highlight-avance" id="popup-avance-${sitio.id}">${avance}%</span>
                     </div>
                 </div>
-            `, { autoPanPaddingTopLeft: [20, 100] });
+            `;
+
+            marker.bindPopup(generarPopupHTML(avanceVal, contratoVal), { autoPanPaddingTopLeft: [20, 100] });
 
             var row = document.createElement("tr");
             row.className = "clickable-row";
@@ -221,8 +223,6 @@
                 let nuevoAvance = inputAvance.value === "" ? 0 : inputAvance.value;
                 let nuevoContrato = inputContrato.value === "" ? 0 : inputContrato.value;
 
-                document.getElementById(`popup-avance-${sitio.id}`).innerText = nuevoAvance + "%";
-
                 const { error } = await supabaseClient
                     .from('sitios')
                     .update({ avance: nuevoAvance, contrato: nuevoContrato })
@@ -230,11 +230,20 @@
                 
                 if (error) {
                     console.error("Error al guardar:", error);
-                    alert("Error al guardar en la base de datos. Revisa la consola (F12).");
+                    alert("Error al guardar en la base de datos.");
+                } else {
+                    // ¡AQUÍ ESTÁ LA SOLUCIÓN AL ERROR ROJO!
+                    // Solo actualizamos el DOM si el popup está visible. Si está cerrado, no pasa nada.
+                    let popupAvance = document.getElementById(`popup-avance-${sitio.id}`);
+                    if (popupAvance) {
+                        popupAvance.innerText = nuevoAvance + "%";
+                    }
+                    
+                    // Actualizamos el contenido del popup por si el usuario lo abre después
+                    marker.setPopupContent(generarPopupHTML(nuevoAvance, nuevoContrato));
                 }
             };
 
-            // GUARDADO MEJORADO: Se activa al salir de la casilla o presionar Enter
             inputAvance.addEventListener("blur", guardarEnSupabase);
             inputContrato.addEventListener("blur", guardarEnSupabase);
             
