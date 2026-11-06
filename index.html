@@ -156,9 +156,11 @@
         markersGroup.clearLayers(); 
 
         sitios.forEach(function(sitio) {
+            // AQUÍ ESTÁ LA MAGIA DE LAS LETRAS
             let letraIcono = "CA", claseForma = "icon-circle";
             if (sitio.tipo === "Museo") { letraIcono = "M"; claseForma = "icon-square"; }
             else if (sitio.tipo === "Zona") { letraIcono = "ZA"; claseForma = "icon-diamond"; }
+            else if (sitio.tipo === "SECTOR") { letraIcono = "S"; claseForma = "icon-circle"; }
 
             let claseColor = "bg-media", colorPrioridadHex = "#ffc107";
             if (sitio.prioridad === "ALTA") { claseColor = "bg-alta"; colorPrioridadHex = "#dc3545"; }
@@ -167,7 +169,6 @@
             let iconHtml = `<div class="custom-icon ${claseForma} ${claseColor}"><span>${letraIcono}</span></div>`;
             var customIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [26, 26], iconAnchor: [13, 13] });
 
-            // Mantenemos los valores actuales en variables
             let contratoVal = sitio.contrato || 0;
             let avanceVal = sitio.avance || 0;
 
@@ -175,22 +176,19 @@
             
             marker.bindTooltip(sitio.nombre, { permanent: true, direction: 'right', className: 'custom-tooltip', offset: [15, 0] });
 
-            // Función para generar el HTML del popup (para actualizarlo fácilmente)
-            const generarPopupHTML = (avance, contrato) => `
+            marker.bindPopup(`
                 <div style="font-size: 13px; min-width: 180px;">
                     <b>${sitio.nombre}</b><br>
                     <span class="text-muted">Distrito: ${sitio.distrito}</span><br><hr style="margin: 6px 0;">
                     <b>Prioridad:</b> <span class="popup-highlight-badge" style="background-color: ${colorPrioridadHex}; color: ${sitio.prioridad === 'MEDIA' ? 'black' : 'white'};">${sitio.prioridad}</span><br>
                     <b>Ppto Prog:</b> S/ ${sitio.prog.toLocaleString('es-PE')}<br>
-                    <b>Ppto Contr:</b> S/ ${Number(contrato).toLocaleString('es-PE')}<br>
+                    <b>Ppto Contr:</b> S/ ${Number(contratoVal).toLocaleString('es-PE')}<br>
                     <div style="margin-top: 8px; background: #e9ecef; padding: 6px; border-radius: 6px; text-align: center;">
                         <span style="font-size: 11px; text-transform: uppercase; color: #6c757d;">Avance Actual</span>
-                        <span class="popup-highlight-avance" id="popup-avance-${sitio.id}">${avance}%</span>
+                        <span class="popup-highlight-avance" id="popup-avance-${sitio.id}">${avanceVal}%</span>
                     </div>
                 </div>
-            `;
-
-            marker.bindPopup(generarPopupHTML(avanceVal, contratoVal), { autoPanPaddingTopLeft: [20, 100] });
+            `, { autoPanPaddingTopLeft: [20, 100] });
 
             var row = document.createElement("tr");
             row.className = "clickable-row";
@@ -230,17 +228,11 @@
                 
                 if (error) {
                     console.error("Error al guardar:", error);
-                    alert("Error al guardar en la base de datos.");
                 } else {
-                    // ¡AQUÍ ESTÁ LA SOLUCIÓN AL ERROR ROJO!
-                    // Solo actualizamos el DOM si el popup está visible. Si está cerrado, no pasa nada.
                     let popupAvance = document.getElementById(`popup-avance-${sitio.id}`);
                     if (popupAvance) {
                         popupAvance.innerText = nuevoAvance + "%";
                     }
-                    
-                    // Actualizamos el contenido del popup por si el usuario lo abre después
-                    marker.setPopupContent(generarPopupHTML(nuevoAvance, nuevoContrato));
                 }
             };
 
