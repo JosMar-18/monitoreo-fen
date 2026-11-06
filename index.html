@@ -17,9 +17,9 @@
 
     <style>
         body { background-color: #f8f9fa; }
-        #map { height: 50vh; width: 100%; border-radius: 8px; border: 2px solid #333; z-index: 1; }
+        #map { height: 45vh; width: 100%; border-radius: 8px; border: 2px solid #333; z-index: 1; }
         
-        .table-responsive { max-height: 40vh; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .table-responsive { max-height: 38vh; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .table { min-width: 650px; }
         .table th { position: sticky; top: 0; z-index: 2; background-color: #212529 !important; color: white; font-size: 0.75rem; white-space: nowrap; }
         
@@ -30,6 +30,7 @@
         .contrato-input { width: 85px !important; padding: 0.25rem 0.5rem; text-align: right; }
         .form-control-sm { font-size: 16px; }
         
+        /* Bloquear inputs cuando no está en modo edición */
         .modo-lectura .contrato-input, .modo-lectura .avance-input {
             pointer-events: none;
             background-color: transparent;
@@ -42,6 +43,7 @@
         .modo-lectura .contrato-input { text-align: right; }
         .modo-lectura .input-group-text { display: none; }
 
+        /* Estilos de los Tooltips e Íconos */
         .leaflet-tooltip { background: rgba(255, 255, 255, 0.95); border: 1px solid #ccc; border-radius: 4px; box-shadow: 1px 1px 4px rgba(0,0,0,0.3); font-size: 11px; font-weight: bold; padding: 2px 6px; white-space: nowrap; pointer-events: none; }
         .custom-icon { display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-family: Arial, sans-serif; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
         .icon-circle { border-radius: 50%; width: 26px; height: 26px; font-size: 10px; }
@@ -60,6 +62,7 @@
         .badge-media { background-color: #ffc107; color: black; }
         .badge-baja { background-color: #28a745; color: white; }
 
+        /* Estilos para impresión de reporte */
         @media print {
             body { background-color: white; }
             #map, .no-print, .card-header, .table-responsive { overflow: visible !important; max-height: none !important; }
@@ -83,19 +86,39 @@
         <p class="text-muted mb-0" style="font-size: 12px;">Sitios Arqueológicos - Región Lambayeque</p>
     </div>
 
+    <!-- MAPA -->
     <div class="row mb-3 no-print">
         <div class="col-12">
             <div id="map"></div>
         </div>
     </div>
 
+    <!-- TABLA DE CONTROL -->
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-2">
-                    <span style="font-size: 14px;">Control Presupuestal</span>
-                    <small style="font-size: 12px;">Total Prog: S/ 1,964,571.12</small>
+                <!-- NUEVO PANEL SUPERIOR CON GLOBALES -->
+                <div class="card-header bg-dark text-white p-2">
+                    <div class="row text-center align-items-center">
+                        <div class="col-6 col-md-3 border-end border-secondary">
+                            <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Avance Prog. Global</div>
+                            <div id="global-avance-prog" class="font-weight-bold text-info" style="font-size: 18px;">0.00%</div>
+                        </div>
+                        <div class="col-6 col-md-3 border-end border-secondary">
+                            <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Total Prog.</div>
+                            <div id="global-total-prog" class="font-weight-bold" style="font-size: 15px;">S/ 0.00</div>
+                        </div>
+                        <div class="col-6 col-md-3 border-end border-secondary mt-2 mt-md-0">
+                            <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Avance Contr. Global</div>
+                            <div id="global-avance-contr" class="font-weight-bold text-success" style="font-size: 18px;">0.00%</div>
+                        </div>
+                        <div class="col-6 col-md-3 mt-2 mt-md-0">
+                            <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Total Contr.</div>
+                            <div id="global-total-contr" class="font-weight-bold" style="font-size: 15px;">S/ 0.00</div>
+                        </div>
+                    </div>
                 </div>
+                
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-striped table-hover mb-0" style="font-size: 0.85rem;">
@@ -140,6 +163,36 @@
     var tableBody = document.getElementById("budgetTable");
     var markersGroup = L.featureGroup().addTo(map);
 
+    // Función para calcular los globales
+    function calcularGlobales(sitios) {
+        let totalProg = 0;
+        let totalContr = 0;
+        let sumAvanceProg = 0;
+        let sumAvanceContr = 0;
+
+        sitios.forEach(s => {
+            let p = Number(s.prog) || 0;
+            let c = Number(s.contrato) || 0;
+            let a = Number(s.avance) || 0;
+
+            totalProg += p;
+            totalContr += c;
+            
+            // Cálculo ponderado
+            sumAvanceProg += (a * p);
+            sumAvanceContr += (a * c);
+        });
+
+        // Evitar división por cero
+        let pctProg = totalProg > 0 ? (sumAvanceProg / totalProg) : 0;
+        let pctContr = totalContr > 0 ? (sumAvanceContr / totalContr) : 0;
+
+        document.getElementById('global-total-prog').innerText = 'S/ ' + totalProg.toLocaleString('es-PE', {minimumFractionDigits: 2});
+        document.getElementById('global-total-contr').innerText = 'S/ ' + totalContr.toLocaleString('es-PE', {minimumFractionDigits: 2});
+        document.getElementById('global-avance-prog').innerText = pctProg.toFixed(2) + '%';
+        document.getElementById('global-avance-contr').innerText = pctContr.toFixed(2) + '%';
+    }
+
     async function cargarDatos() {
         const { data: sitios, error } = await supabaseClient
             .from('sitios')
@@ -156,7 +209,7 @@
         markersGroup.clearLayers(); 
 
         sitios.forEach(function(sitio) {
-            // AQUÍ ESTÁ LA MAGIA DE LAS LETRAS
+            // Lógica de íconos
             let letraIcono = "CA", claseForma = "icon-circle";
             if (sitio.tipo === "Museo") { letraIcono = "M"; claseForma = "icon-square"; }
             else if (sitio.tipo === "Zona") { letraIcono = "ZA"; claseForma = "icon-diamond"; }
@@ -229,6 +282,14 @@
                 if (error) {
                     console.error("Error al guardar:", error);
                 } else {
+                    // Actualizar objeto local para recalcular globales
+                    sitio.avance = nuevoAvance;
+                    sitio.contrato = nuevoContrato;
+                    
+                    // Recalcular los totales en la parte superior
+                    calcularGlobales(sitios);
+
+                    // Actualizar el popup si está abierto
                     let popupAvance = document.getElementById(`popup-avance-${sitio.id}`);
                     if (popupAvance) {
                         popupAvance.innerText = nuevoAvance + "%";
@@ -246,6 +307,9 @@
                 if (e.key === 'Enter') { this.blur(); }
             });
         });
+
+        // Calcular globales la primera vez que carga la página
+        calcularGlobales(sitios);
 
         map.fitBounds(markersGroup.getBounds(), { padding: [30, 30] });
     }
