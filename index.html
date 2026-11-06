@@ -72,13 +72,14 @@
         }
     </style>
 </head>
-<body class="modo-lectura">
+<body class="modo-lectura"> <!-- Inicia bloqueado por defecto -->
 
 <div class="container-fluid py-2">
     <div class="row text-center mb-2 no-print">
         <div class="col-12 d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Panel de Monitoreo FEN</h5>
             <div>
+                <!-- Botones de Admin y Reporte -->
                 <button class="btn btn-sm btn-outline-dark" onclick="toggleAdmin()" id="btnAdmin">🔒 Modo Edición</button>
                 <button class="btn btn-sm btn-outline-primary" onclick="window.print()">📄 Reporte PDF</button>
             </div>
@@ -114,6 +115,7 @@
                                 </tr>
                             </thead>
                             <tbody id="budgetTable">
+                                <!-- Se llena desde Supabase -->
                                 <tr><td colspan="5" class="text-center py-3">Cargando datos de la nube...</td></tr>
                             </tbody>
                         </table>
@@ -126,11 +128,12 @@
 
 <script>
     // ==========================================
-    // 1. CONEXIÓN A SUPABASE A TRAVÉS DE CLOUDFLARE
+    // 1. CONEXIÓN A SUPABASE (Reemplaza estos datos)
     // ==========================================
-    const SUPABASE_URL = 'https://puente-fen.fiagotopo.workers.dev'; 
+    const SUPABASE_URL = 'https://puente-fen.fiagotopo.workers.dev' 
     const SUPABASE_KEY = 'sb_publishable_S-VFPOw7XhpURHUh01ideQ_tvNeDc42';
     
+    // Inicializar cliente de Supabase
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // 2. INICIALIZAR MAPA
@@ -147,7 +150,7 @@
     L.control.layers({"Satelital": esriSatellite, "Callejero": esriStreets}).addTo(map);
 
     var tableBody = document.getElementById("budgetTable");
-    var markersGroup = L.featureGroup().addTo(map);
+    var markersGroup = L.featureGroup().addTo(map); // Para guardar los puntos
 
     // 3. CARGAR DATOS DESDE SUPABASE
     async function cargarDatos() {
@@ -162,10 +165,11 @@
             return;
         }
 
-        tableBody.innerHTML = ''; 
-        markersGroup.clearLayers(); 
+        tableBody.innerHTML = ''; // Limpiar tabla
+        markersGroup.clearLayers(); // Limpiar mapa
 
         sitios.forEach(function(sitio) {
+            // Configurar íconos
             let letraIcono = "CA", claseForma = "icon-circle";
             if (sitio.tipo === "Museo") { letraIcono = "M"; claseForma = "icon-square"; }
             else if (sitio.tipo === "Zona") { letraIcono = "ZA"; claseForma = "icon-diamond"; }
@@ -177,13 +181,16 @@
             let iconHtml = `<div class="custom-icon ${claseForma} ${claseColor}"><span>${letraIcono}</span></div>`;
             var customIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [26, 26], iconAnchor: [13, 13] });
 
+            // Formatear números (si son nulos, mostrar 0)
             let contratoVal = sitio.contrato || 0;
             let avanceVal = sitio.avance || 0;
 
+            // Crear Marcador
             var marker = L.marker([sitio.lat, sitio.lng], { icon: customIcon }).addTo(markersGroup);
             
             marker.bindTooltip(sitio.nombre, { permanent: true, direction: 'right', className: 'custom-tooltip', offset: [15, 0] });
 
+            // Popup
             marker.bindPopup(`
                 <div style="font-size: 13px; min-width: 180px;">
                     <b>${sitio.nombre}</b><br>
@@ -198,6 +205,7 @@
                 </div>
             `, { autoPanPaddingTopLeft: [20, 100] });
 
+            // Crear Fila
             var row = document.createElement("tr");
             row.className = "clickable-row";
             row.innerHTML = `
@@ -214,23 +222,28 @@
             `;
             tableBody.appendChild(row);
 
+            // Evento Volar
             row.addEventListener("click", function(e) {
                 if(e.target.tagName.toLowerCase() === 'input') return;
                 map.flyTo([sitio.lat + 0.015, sitio.lng], 13, { animate: true, duration: 1.2 });
                 setTimeout(function() { marker.openPopup(); }, 1200);
             });
 
+            // Evento Guardar en Supabase (al dejar de escribir)
             let inputAvance = document.getElementById(`avance-${sitio.id}`);
             let inputContrato = document.getElementById(`contrato-${sitio.id}`);
 
+            // Solo guardar si estamos en modo edición (el body no tiene la clase modo-lectura)
             const guardarEnSupabase = async () => {
                 if (document.body.classList.contains('modo-lectura')) return;
                 
                 let nuevoAvance = inputAvance.value === "" ? 0 : inputAvance.value;
                 let nuevoContrato = inputContrato.value === "" ? 0 : inputContrato.value;
 
+                // Actualizar la vista del popup
                 document.getElementById(`popup-avance-${sitio.id}`).innerText = nuevoAvance + "%";
 
+                // Actualizar en Supabase
                 const { error } = await supabaseClient
                     .from('sitios')
                     .update({ avance: nuevoAvance, contrato: nuevoContrato })
@@ -239,21 +252,24 @@
                 if (error) console.error("Error al guardar:", error);
             };
 
+            // 'change' se dispara cuando el usuario termina de escribir y hace clic afuera o presiona Enter
             inputAvance.addEventListener("change", guardarEnSupabase);
             inputContrato.addEventListener("change", guardarEnSupabase);
         });
 
+        // Ajustar mapa para que se vean todos los puntos
         map.fitBounds(markersGroup.getBounds(), { padding: [30, 30] });
     }
 
-    // 4. LÓGICA DE MODO EDICIÓN
+    // 4. LÓGICA DE MODO EDICIÓN (CONTRASEÑA)
     function toggleAdmin() {
         const esModoLectura = document.body.classList.contains('modo-lectura');
         const btn = document.getElementById('btnAdmin');
 
         if (esModoLectura) {
+            // Pedir contraseña
             let pass = prompt("Ingrese la contraseña de administrador:");
-            if (pass === "admin123") { 
+            if (pass === "admin123") { // PUEDES CAMBIAR ESTA CONTRASEÑA AQUÍ
                 document.body.classList.remove('modo-lectura');
                 btn.innerHTML = "🔓 Modo Edición ON";
                 btn.classList.replace('btn-outline-dark', 'btn-success');
@@ -261,12 +277,14 @@
                 alert("Contraseña incorrecta.");
             }
         } else {
+            // Bloquear de nuevo
             document.body.classList.add('modo-lectura');
             btn.innerHTML = "🔒 Modo Edición";
             btn.classList.replace('btn-success', 'btn-outline-dark');
         }
     }
 
+    // Iniciar la carga
     cargarDatos();
 </script>
 </body>
