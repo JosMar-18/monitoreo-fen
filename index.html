@@ -12,117 +12,83 @@
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         body { background-color: #f8f9fa; }
-        #map { height: 55vh; width: 100%; border-radius: 8px; border: 2px solid #333; z-index: 1; }
+        #map { height: 50vh; width: 100%; border-radius: 8px; border: 2px solid #333; z-index: 1; }
         
-        /* =========================================
-           AJUSTES PARA LA TABLA EN MÓVILES
-           ========================================= */
-        .table-responsive { 
-            max-height: 40vh; 
-            overflow-y: auto; 
-            overflow-x: auto; 
-            -webkit-overflow-scrolling: touch; 
-        }
-        
-        /* Reducimos un poco el ancho total necesario */
+        .table-responsive { max-height: 40vh; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .table { min-width: 650px; }
-        
-        .table th { 
-            position: sticky; 
-            top: 0; 
-            z-index: 2; 
-            background-color: #212529 !important; 
-            color: white;
-            font-size: 0.75rem;
-            white-space: nowrap;
-        }
+        .table th { position: sticky; top: 0; z-index: 2; background-color: #212529 !important; color: white; font-size: 0.75rem; white-space: nowrap; }
         
         .clickable-row { cursor: pointer; transition: background-color 0.2s; }
         .clickable-row:hover { background-color: #e9ecef !important; }
-        .clickable-row:active { background-color: #d1e7dd !important; }
         
-        /* Campos de texto táctiles */
         .avance-input { width: 50px; text-align: center; }
-        
-        /* AJUSTE CLAVE: Reducimos el ancho de la casilla contractual */
-        .contrato-input { 
-            width: 85px !important; 
-            padding: 0.25rem 0.5rem;
-            text-align: right;
-        }
-        
+        .contrato-input { width: 85px !important; padding: 0.25rem 0.5rem; text-align: right; }
         .form-control-sm { font-size: 16px; }
-
-        /* Estilos de los Tooltips (Solo el nombre, limpio) */
-        .leaflet-tooltip {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
-            font-size: 11px;
-            font-weight: bold;
-            padding: 2px 6px;
-            white-space: nowrap;
+        
+        /* Bloquear inputs cuando no está en modo edición */
+        .modo-lectura .contrato-input, .modo-lectura .avance-input {
             pointer-events: none;
-        }
-
-        /* Estilos de los íconos personalizados del mapa */
-        .custom-icon {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
+            background-color: transparent;
+            border: none;
+            box-shadow: none;
+            color: #333;
             font-weight: bold;
-            font-family: Arial, sans-serif;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            text-align: center;
         }
+        .modo-lectura .contrato-input { text-align: right; }
+        .modo-lectura .input-group-text { display: none; } /* Ocultar el % */
+
+        /* Estilos de los Tooltips e Íconos */
+        .leaflet-tooltip { background: rgba(255, 255, 255, 0.95); border: 1px solid #ccc; border-radius: 4px; box-shadow: 1px 1px 4px rgba(0,0,0,0.3); font-size: 11px; font-weight: bold; padding: 2px 6px; white-space: nowrap; pointer-events: none; }
+        .custom-icon { display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-family: Arial, sans-serif; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
         .icon-circle { border-radius: 50%; width: 26px; height: 26px; font-size: 10px; }
         .icon-square { border-radius: 4px; width: 26px; height: 26px; font-size: 12px; }
         .icon-diamond { transform: rotate(45deg); width: 24px; height: 24px; font-size: 10px; }
         .icon-diamond span { transform: rotate(-45deg); display: block; }
         
-        /* Colores de fondo por prioridad */
         .bg-alta { background-color: #dc3545; }
         .bg-media { background-color: #ffc107; color: #000 !important; }
         .bg-baja { background-color: #28a745; }
 
-        /* Resaltados dentro del Popup */
-        .popup-highlight-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 12px;
-            color: white;
-        }
-        .popup-highlight-avance {
-            font-size: 20px;
-            font-weight: 900;
-            color: #007bff;
-            display: block;
-            margin-top: 5px;
-        }
-
-        /* Insignias de la tabla */
+        .popup-highlight-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; color: white; }
+        .popup-highlight-avance { font-size: 20px; font-weight: 900; color: #007bff; display: block; margin-top: 5px; }
+        
         .badge-alta { background-color: #dc3545; color: white; }
         .badge-media { background-color: #ffc107; color: black; }
         .badge-baja { background-color: #28a745; color: white; }
+
+        /* Estilos para impresión de reporte */
+        @media print {
+            body { background-color: white; }
+            #map, .no-print, .card-header, .table-responsive { overflow: visible !important; max-height: none !important; }
+            .no-print { display: none !important; }
+            .table { min-width: 100% !important; font-size: 12px; }
+            .contrato-input, .avance-input { border: none; font-weight: bold; text-align: right; }
+        }
     </style>
 </head>
-<body>
+<body class="modo-lectura"> <!-- Inicia bloqueado por defecto -->
 
 <div class="container-fluid py-2">
-    <div class="row text-center mb-2">
-        <div class="col-12">
+    <div class="row text-center mb-2 no-print">
+        <div class="col-12 d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Panel de Monitoreo FEN</h5>
-            <p class="text-muted" style="font-size: 12px;">Sitios Arqueológicos - Región Lambayeque</p>
+            <div>
+                <!-- Botones de Admin y Reporte -->
+                <button class="btn btn-sm btn-outline-dark" onclick="toggleAdmin()" id="btnAdmin">🔒 Modo Edición</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="window.print()">📄 Reporte PDF</button>
+            </div>
         </div>
+        <p class="text-muted mb-0" style="font-size: 12px;">Sitios Arqueológicos - Región Lambayeque</p>
     </div>
 
     <!-- MAPA -->
-    <div class="row mb-3">
+    <div class="row mb-3 no-print">
         <div class="col-12">
             <div id="map"></div>
         </div>
@@ -134,14 +100,14 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-2">
                     <span style="font-size: 14px;">Control Presupuestal</span>
-                    <small style="font-size: 12px;">Total: S/ 1,964,571.12</small>
+                    <small style="font-size: 12px;">Total Prog: S/ 1,964,571.12</small>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-striped table-hover mb-0" style="font-size: 0.85rem;">
                             <thead>
                                 <tr>
-                                    <th>Sitio (Clic)</th>
+                                    <th>Sitio</th>
                                     <th>Prioridad</th>
                                     <th>Prog. (S/)</th>
                                     <th>Contr. (S/)</th>
@@ -149,7 +115,8 @@
                                 </tr>
                             </thead>
                             <tbody id="budgetTable">
-                                <!-- Llenado por JS -->
+                                <!-- Se llena desde Supabase -->
+                                <tr><td colspan="5" class="text-center py-3">Cargando datos de la nube...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -160,175 +127,165 @@
 </div>
 
 <script>
-    // 1. INICIALIZAR MAPA (Centrado en Lambayeque)
+    // ==========================================
+    // 1. CONEXIÓN A SUPABASE (Reemplaza estos datos)
+    // ==========================================
+    const SUPABASE_URL = 'sb_publishable_S-VFPOw7XhpURHUh01ideQ_tvNeDc42'; 
+    const SUPABASE_KEY = 'sb_secret_BAwcUkbzFQCR_noimBWyzw_kiLw35dq';
+    
+    // Inicializar cliente de Supabase
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 2. INICIALIZAR MAPA
     var map = L.map('map', { zoomControl: false }).setView([-6.65, -79.8], 10);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // 2. MAPAS BASE (Esri - Sin API Key)
+    var esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+    }).addTo(map);
+    
     var esriStreets = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri'
     });
-    var esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri'
-    });
-
-    // Imagen satelital por defecto
-    esriSatellite.addTo(map);
-    
     L.control.layers({"Satelital": esriSatellite, "Callejero": esriStreets}).addTo(map);
 
-    // 3. DATOS DE SITIOS (Coordenadas calibradas exactas)
-    var sitios = [
-        { id: 1, nombre: "C. A. Huaca Bandera", tipo: "Complejo", distrito: "Pacora", lat: -6.406288, lng: -79.899443, prioridad: "ALTA", prog: 121351.21 },
-        { id: 2, nombre: "C. A. Jotoro", tipo: "Complejo", distrito: "Jayanca", lat: -6.416574, lng: -79.783172, prioridad: "ALTA", prog: 81546.30 },
-        { id: 3, nombre: "C. A. Chotuna Chornancap", tipo: "Complejo", distrito: "Lambayeque", lat: -6.721807, lng: -79.955938, prioridad: "ALTA", prog: 142100.44 },
-        { id: 4, nombre: "Museo Nac. Bruning", tipo: "Museo", distrito: "Lambayeque", lat: -6.704300, lng: -79.903600, prioridad: "MEDIA", prog: 146771.69 },
-        { id: 5, nombre: "Museo Tumbas Reales", tipo: "Museo", distrito: "Lambayeque", lat: -6.705400, lng: -79.899000, prioridad: "MEDIA", prog: 89888.33 },
-        { id: 6, nombre: "Huaca Larga", tipo: "Complejo", distrito: "Túcume", lat: -6.513365, lng: -79.839899, prioridad: "ALTA", prog: 120139.80 },
-        { id: 7, nombre: "Huaca La Pintada", tipo: "Complejo", distrito: "Túcume", lat: -6.493500, lng: -79.857700, prioridad: "BAJA", prog: 24812.51 },
-        { id: 8, nombre: "C. A. Huaca Rajada", tipo: "Complejo", distrito: "Zaña", lat: -6.799800, lng: -79.600300, prioridad: "ALTA", prog: 347105.17 },
-        { id: 9, nombre: "C. A. Cerro Pátapo", tipo: "Complejo", distrito: "Pátapo", lat: -6.730053, lng: -79.641896, prioridad: "ALTA", prog: 69648.42 },
-        { id: 10, nombre: "Huaca Santa Rosa", tipo: "Complejo", distrito: "Pucalá", lat: -6.772800, lng: -79.622900, prioridad: "MEDIA", prog: 62892.43 },
-        { id: 11, nombre: "C. A. Cerro Ventarrón", tipo: "Complejo", distrito: "Pomalca", lat: -6.805749, lng: -79.759619, prioridad: "BAJA", prog: 74436.55 },
-        { id: 12, nombre: "Museo Nacional Sican", tipo: "Museo", distrito: "Ferreñafe", lat: -6.623862, lng: -79.785661, prioridad: "MEDIA", prog: 95000.00 },
-        { id: 13, nombre: "Bosque de Pomac", tipo: "Zona", distrito: "Pitipo", lat: -6.473200, lng: -79.793000, prioridad: "ALTA", prog: 265000.00 }
-    ];
-
     var tableBody = document.getElementById("budgetTable");
-    var datosGuardados = JSON.parse(localStorage.getItem("datosFEN_v4")) || {};
+    var markersGroup = L.featureGroup().addTo(map); // Para guardar los puntos
 
-    sitios.forEach(function(sitio) {
-        
-        // DEFINIR FORMA Y SIGLAS DEL ÍCONO
-        let letraIcono = "";
-        let claseForma = "";
-        if (sitio.tipo === "Museo") { 
-            letraIcono = "M"; 
-            claseForma = "icon-square"; 
-        } else if (sitio.tipo === "Zona") { 
-            letraIcono = "ZA"; 
-            claseForma = "icon-diamond"; 
-        } else { 
-            letraIcono = "CA"; 
-            claseForma = "icon-circle"; 
+    // 3. CARGAR DATOS DESDE SUPABASE
+    async function cargarDatos() {
+        const { data: sitios, error } = await supabaseClient
+            .from('sitios')
+            .select('*')
+            .order('id', { ascending: true });
+
+        if (error) {
+            console.error("Error cargando datos:", error);
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-danger text-center">Error al conectar con la base de datos.</td></tr>`;
+            return;
         }
 
-        // ASIGNAR COLOR DE FONDO POR PRIORIDAD
-        let claseColor = "bg-media";
-        let colorPrioridadHex = "#ffc107"; // Amarillo
-        if (sitio.prioridad === "ALTA") { claseColor = "bg-alta"; colorPrioridadHex = "#dc3545"; }
-        if (sitio.prioridad === "BAJA") { claseColor = "bg-baja"; colorPrioridadHex = "#28a745"; }
+        tableBody.innerHTML = ''; // Limpiar tabla
+        markersGroup.clearLayers(); // Limpiar mapa
 
-        // CREAR ÍCONO HTML
-        let iconHtml = `<div class="custom-icon ${claseForma} ${claseColor}"><span>${letraIcono}</span></div>`;
-        var customIcon = L.divIcon({
-            html: iconHtml,
-            className: '', 
-            iconSize: [26, 26],
-            iconAnchor: [13, 13]
-        });
+        sitios.forEach(function(sitio) {
+            // Configurar íconos
+            let letraIcono = "CA", claseForma = "icon-circle";
+            if (sitio.tipo === "Museo") { letraIcono = "M"; claseForma = "icon-square"; }
+            else if (sitio.tipo === "Zona") { letraIcono = "ZA"; claseForma = "icon-diamond"; }
 
-        // RECUPERAR DATOS GUARDADOS
-        var avanceGuardado = datosGuardados[sitio.id] ? datosGuardados[sitio.id].avance : 0;
-        var contratoGuardado = datosGuardados[sitio.id] ? datosGuardados[sitio.id].contrato : 0;
+            let claseColor = "bg-media", colorPrioridadHex = "#ffc107";
+            if (sitio.prioridad === "ALTA") { claseColor = "bg-alta"; colorPrioridadHex = "#dc3545"; }
+            if (sitio.prioridad === "BAJA") { claseColor = "bg-baja"; colorPrioridadHex = "#28a745"; }
 
-        // CREAR MARCADOR
-        var marker = L.marker([sitio.lat, sitio.lng], { icon: customIcon }).addTo(map);
-        
-        // FLOTANTE 1: TOOLTIP PERMANENTE (Solo el nombre, limpio)
-        marker.bindTooltip(sitio.nombre, {
-            permanent: true,
-            direction: 'right',
-            className: 'custom-tooltip',
-            offset: [15, 0]
-        });
+            let iconHtml = `<div class="custom-icon ${claseForma} ${claseColor}"><span>${letraIcono}</span></div>`;
+            var customIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [26, 26], iconAnchor: [13, 13] });
 
-        // FLOTANTE 2: POPUP (Al hacer clic, con resaltados)
-        marker.bindPopup(`
-            <div style="font-size: 13px; min-width: 180px;">
-                <b>${sitio.nombre}</b><br>
-                <span class="text-muted">Distrito: ${sitio.distrito}</span><br>
-                <hr style="margin: 6px 0;">
-                
-                <div style="margin-bottom: 5px;">
-                    <b>Prioridad:</b> 
-                    <span class="popup-highlight-badge" style="background-color: ${colorPrioridadHex}; color: ${sitio.prioridad === 'MEDIA' ? 'black' : 'white'};">
-                        ${sitio.prioridad}
-                    </span>
-                </div>
-                
-                <b>Ppto Prog:</b> S/ ${sitio.prog.toLocaleString('es-PE')}<br>
-                <b>Ppto Contr:</b> S/ ${Number(contratoGuardado).toLocaleString('es-PE')}<br>
-                
-                <div style="margin-top: 8px; background: #e9ecef; padding: 6px; border-radius: 6px; text-align: center;">
-                    <span style="font-size: 11px; text-transform: uppercase; color: #6c757d;">Avance Actual</span>
-                    <span class="popup-highlight-avance" id="popup-avance-${sitio.id}">${avanceGuardado}%</span>
-                </div>
-            </div>
-        `, {
-            autoPan: true,
-            autoPanPaddingTopLeft: [20, 100], 
-            autoPanPaddingBottomRight: [20, 20]
-        });
+            // Formatear números (si son nulos, mostrar 0)
+            let contratoVal = sitio.contrato || 0;
+            let avanceVal = sitio.avance || 0;
 
-        // CREAR FILA DE TABLA
-        var row = document.createElement("tr");
-        row.className = "clickable-row";
-        row.innerHTML = `
-            <td>
-                <strong>${sitio.nombre}</strong><br>
-                <small class="text-muted">${sitio.distrito}</small>
-            </td>
-            <td><span class="badge badge-${sitio.prioridad.toLowerCase()}">${sitio.prioridad}</span></td>
-            <td>S/ ${sitio.prog.toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
-            <td>
-                <input type="number" class="form-control form-control-sm contrato-input" id="contrato-${sitio.id}" value="${contratoGuardado}" placeholder="0.00">
-            </td>
-            <td>
-                <div class="input-group input-group-sm" style="width: 85px;">
-                    <input type="number" class="form-control avance-input" id="avance-${sitio.id}" value="${avanceGuardado}" min="0" max="100">
-                    <span class="input-group-text" style="padding: 0.25rem 0.4rem;">%</span>
-                </div>
-            </td>
-        `;
-        tableBody.appendChild(row);
-
-        // EVENTO CLIC EN LA FILA (Volar al mapa)
-        row.addEventListener("click", function(e) {
-            if(e.target.tagName.toLowerCase() === 'input') return;
+            // Crear Marcador
+            var marker = L.marker([sitio.lat, sitio.lng], { icon: customIcon }).addTo(markersGroup);
             
-            // Centrar el punto un poco más abajo para que el popup tenga espacio
-            var targetLat = sitio.lat + 0.015;
-            var targetLng = sitio.lng;
+            marker.bindTooltip(sitio.nombre, { permanent: true, direction: 'right', className: 'custom-tooltip', offset: [15, 0] });
 
-            map.flyTo([targetLat, targetLng], 13, { animate: true, duration: 1.2 });
-            
-            setTimeout(function() {
-                marker.openPopup();
-            }, 1200);
+            // Popup
+            marker.bindPopup(`
+                <div style="font-size: 13px; min-width: 180px;">
+                    <b>${sitio.nombre}</b><br>
+                    <span class="text-muted">Distrito: ${sitio.distrito}</span><br><hr style="margin: 6px 0;">
+                    <b>Prioridad:</b> <span class="popup-highlight-badge" style="background-color: ${colorPrioridadHex}; color: ${sitio.prioridad === 'MEDIA' ? 'black' : 'white'};">${sitio.prioridad}</span><br>
+                    <b>Ppto Prog:</b> S/ ${sitio.prog.toLocaleString('es-PE')}<br>
+                    <b>Ppto Contr:</b> S/ ${Number(contratoVal).toLocaleString('es-PE')}<br>
+                    <div style="margin-top: 8px; background: #e9ecef; padding: 6px; border-radius: 6px; text-align: center;">
+                        <span style="font-size: 11px; text-transform: uppercase; color: #6c757d;">Avance Actual</span>
+                        <span class="popup-highlight-avance" id="popup-avance-${sitio.id}">${avanceVal}%</span>
+                    </div>
+                </div>
+            `, { autoPanPaddingTopLeft: [20, 100] });
+
+            // Crear Fila
+            var row = document.createElement("tr");
+            row.className = "clickable-row";
+            row.innerHTML = `
+                <td><strong>${sitio.nombre}</strong><br><small class="text-muted">${sitio.distrito}</small></td>
+                <td><span class="badge badge-${sitio.prioridad.toLowerCase()}">${sitio.prioridad}</span></td>
+                <td>S/ ${sitio.prog.toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
+                <td><input type="number" class="form-control form-control-sm contrato-input" id="contrato-${sitio.id}" value="${contratoVal}" placeholder="0.00"></td>
+                <td>
+                    <div class="input-group input-group-sm" style="width: 85px;">
+                        <input type="number" class="form-control avance-input" id="avance-${sitio.id}" value="${avanceVal}" min="0" max="100">
+                        <span class="input-group-text" style="padding: 0.25rem 0.4rem;">%</span>
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(row);
+
+            // Evento Volar
+            row.addEventListener("click", function(e) {
+                if(e.target.tagName.toLowerCase() === 'input') return;
+                map.flyTo([sitio.lat + 0.015, sitio.lng], 13, { animate: true, duration: 1.2 });
+                setTimeout(function() { marker.openPopup(); }, 1200);
+            });
+
+            // Evento Guardar en Supabase (al dejar de escribir)
+            let inputAvance = document.getElementById(`avance-${sitio.id}`);
+            let inputContrato = document.getElementById(`contrato-${sitio.id}`);
+
+            // Solo guardar si estamos en modo edición (el body no tiene la clase modo-lectura)
+            const guardarEnSupabase = async () => {
+                if (document.body.classList.contains('modo-lectura')) return;
+                
+                let nuevoAvance = inputAvance.value === "" ? 0 : inputAvance.value;
+                let nuevoContrato = inputContrato.value === "" ? 0 : inputContrato.value;
+
+                // Actualizar la vista del popup
+                document.getElementById(`popup-avance-${sitio.id}`).innerText = nuevoAvance + "%";
+
+                // Actualizar en Supabase
+                const { error } = await supabaseClient
+                    .from('sitios')
+                    .update({ avance: nuevoAvance, contrato: nuevoContrato })
+                    .eq('id', sitio.id);
+                
+                if (error) console.error("Error al guardar:", error);
+            };
+
+            // 'change' se dispara cuando el usuario termina de escribir y hace clic afuera o presiona Enter
+            inputAvance.addEventListener("change", guardarEnSupabase);
+            inputContrato.addEventListener("change", guardarEnSupabase);
         });
 
-        // LÓGICA DE ACTUALIZACIÓN AUTOMÁTICA EN EL POPUP
-        let inputAvance = document.getElementById(`avance-${sitio.id}`);
-        let inputContrato = document.getElementById(`contrato-${sitio.id}`);
-
-        inputAvance.addEventListener("input", function() {
-            let nuevoAvance = this.value === "" ? 0 : this.value;
-            guardarDato(sitio.id, nuevoAvance, inputContrato.value);
-            document.getElementById(`popup-avance-${sitio.id}`).innerText = nuevoAvance + "%";
-        });
-
-        inputContrato.addEventListener("input", function() {
-            let nuevoContrato = this.value === "" ? 0 : this.value;
-            guardarDato(sitio.id, inputAvance.value, nuevoContrato);
-        });
-    });
-
-    function guardarDato(idSitio, avance, contrato) {
-        var datos = JSON.parse(localStorage.getItem("datosFEN_v4")) || {};
-        datos[idSitio] = { avance: avance, contrato: contrato };
-        localStorage.setItem("datosFEN_v4", JSON.stringify(datos));
+        // Ajustar mapa para que se vean todos los puntos
+        map.fitBounds(markersGroup.getBounds(), { padding: [30, 30] });
     }
+
+    // 4. LÓGICA DE MODO EDICIÓN (CONTRASEÑA)
+    function toggleAdmin() {
+        const esModoLectura = document.body.classList.contains('modo-lectura');
+        const btn = document.getElementById('btnAdmin');
+
+        if (esModoLectura) {
+            // Pedir contraseña
+            let pass = prompt("Ingrese la contraseña de administrador:");
+            if (pass === "admin123") { // PUEDES CAMBIAR ESTA CONTRASEÑA AQUÍ
+                document.body.classList.remove('modo-lectura');
+                btn.innerHTML = "🔓 Modo Edición ON";
+                btn.classList.replace('btn-outline-dark', 'btn-success');
+            } else if (pass !== null) {
+                alert("Contraseña incorrecta.");
+            }
+        } else {
+            // Bloquear de nuevo
+            document.body.classList.add('modo-lectura');
+            btn.innerHTML = "🔒 Modo Edición";
+            btn.classList.replace('btn-success', 'btn-outline-dark');
+        }
+    }
+
+    // Iniciar la carga
+    cargarDatos();
 </script>
 </body>
 </html>
