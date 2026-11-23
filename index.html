@@ -120,10 +120,10 @@
         .bg-media { background-color: #ffc107; color: #000 !important; }
         .bg-baja { background-color: #28a745; }
 
-        /* Colores de Estado (Letras más grandes y negrita) */
-        .estado-verde { background-color: #198754; color: white; font-size: 13px; font-weight: bold; padding: 6px 10px; border-radius: 12px; }
-        .estado-amarillo { background-color: #ffc107; color: black; font-size: 13px; font-weight: bold; padding: 6px 10px; border-radius: 12px; }
-        .estado-rojo { background-color: #dc3545; color: white; font-size: 13px; font-weight: bold; padding: 6px 10px; border-radius: 12px; }
+        /* Colores de Situación (Letras más grandes y negrita) */
+        .estado-verde { background-color: #198754; color: white; font-size: 12px; font-weight: bold; padding: 5px 8px; border-radius: 12px; display: inline-block; }
+        .estado-amarillo { background-color: #ffc107; color: black; font-size: 12px; font-weight: bold; padding: 5px 8px; border-radius: 12px; display: inline-block; }
+        .estado-rojo { background-color: #dc3545; color: white; font-size: 12px; font-weight: bold; padding: 5px 8px; border-radius: 12px; display: inline-block; }
 
         .popup-highlight-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; color: white; }
         .popup-highlight-avance { font-size: 20px; font-weight: 900; color: #007bff; display: block; margin-top: 5px; }
@@ -131,6 +131,9 @@
         .badge-alta { background-color: #dc3545; color: white; }
         .badge-media { background-color: #ffc107; color: black; }
         .badge-baja { background-color: #28a745; color: white; }
+
+        /* Ocultar leyenda en pantalla normal */
+        .leyenda-impresion { display: none; }
 
         /* =========================================
            CONFIGURACIÓN PARA IMPRESIÓN EN HOJA A4 (HORIZONTAL)
@@ -145,7 +148,6 @@
             .container-fluid { padding: 0 !important; width: 100% !important; max-width: 100% !important; }
             .card { border: none !important; box-shadow: none !important; }
             
-            /* Forzar fondo claro en el panel superior para impresión */
             .card-header { 
                 display: block !important; 
                 background-color: #f1f3f5 !important; 
@@ -155,7 +157,12 @@
             }
             
             .table-responsive { overflow: visible !important; max-height: none !important; }
-            .table { min-width: 100% !important; width: 100% !important; margin-bottom: 0 !important; font-size: 9px !important; }
+            .table { min-width: 100% !important; width: 100% !important; margin-bottom: 0 !important; }
+            
+            /* UNIFICAR TAMAÑO DE LETRA EN IMPRESIÓN */
+            .table th, .table td, .table td strong, .table td small { 
+                font-size: 11px !important; 
+            }
             .table th, .table td { padding: 4px !important; }
             
             /* Quitar el efecto sticky en impresión */
@@ -163,7 +170,7 @@
             .table th:first-child::after, .table td:first-child::after { display: none !important; }
             .table th:last-child, .table td:last-child { padding-right: 4px !important; }
             
-            .modo-lectura .contrato-input, .modo-lectura .avance-input, .modo-lectura .prog-input { border: none; font-weight: normal; text-align: center; padding: 0; }
+            .modo-lectura .contrato-input, .modo-lectura .avance-input, .modo-lectura .prog-input { border: none; font-weight: normal; text-align: center; padding: 0; font-size: 11px !important; }
             
             /* FORZAR COLORES EN IMPRESIÓN */
             .table th { background-color: #1e6091 !important; color: white !important; }
@@ -179,6 +186,16 @@
             #global-avance-contr { color: #198754 !important; }
             #global-total-contr { color: #212529 !important; }
             #global-total-ejecutado { color: #0f6674 !important; }
+
+            /* MOSTRAR LEYENDA AL FINAL */
+            .leyenda-impresion {
+                display: block !important;
+                margin-top: 20px;
+                padding: 10px;
+                border: 1px solid #dee2e6;
+                border-radius: 5px;
+                background-color: #f8f9fa !important;
+            }
         }
     </style>
 </head>
@@ -235,7 +252,7 @@
                                     <th class="text-center">Contr. (S/)</th>
                                     <th class="text-center">Avance Prog. (%)</th>
                                     <th class="text-center">Avance Ejec. (%)</th>
-                                    <th class="text-center">Estado</th>
+                                    <th class="text-center">Situación</th>
                                     <th class="text-center">Monto Ejec (S/.)</th>
                                 </tr>
                             </thead>
@@ -246,6 +263,26 @@
                     </div>
                 </div>
             </div>
+
+            <!-- LEYENDA PARA EL PDF -->
+            <div class="leyenda-impresion">
+                <h6 style="font-weight: bold; margin-bottom: 10px;">Leyenda de Situación:</h6>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <span class="badge estado-verde" style="margin-bottom: 5px;">Al día</span>
+                        <p style="font-size: 11px; margin: 0;">El avance ejecutado es igual o mayor al programado.</p>
+                    </div>
+                    <div class="col-4">
+                        <span class="badge estado-amarillo" style="margin-bottom: 5px;">Retraso leve</span>
+                        <p style="font-size: 11px; margin: 0;">Desviación menor al 3%, con margen de recuperación.</p>
+                    </div>
+                    <div class="col-4">
+                        <span class="badge estado-rojo" style="margin-bottom: 5px;">Retraso moderado</span>
+                        <p style="font-size: 11px; margin: 0;">Desviación mayor al 3%, requiere revisión inmediata.</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -331,13 +368,18 @@
 
             let estadoVal = avanceVal - progVal;
             let estadoClass = "estado-verde";
-            let estadoText = (estadoVal > 0 ? '+' : '') + estadoVal.toFixed(2) + '%';
+            let estadoTexto = "Al día";
 
             if (estadoVal < 0 && estadoVal >= -3) {
                 estadoClass = "estado-amarillo";
+                estadoTexto = "Retraso leve";
             } else if (estadoVal < -3) {
                 estadoClass = "estado-rojo";
+                estadoTexto = "Retraso moderado";
             }
+            
+            // Texto completo para el badge (Ej: "Al día (+2.5%)")
+            let badgeTexto = estadoTexto + ' (' + (estadoVal > 0 ? '+' : '') + estadoVal.toFixed(2) + '%)';
 
             var marker = L.marker([sitio.lat, sitio.lng], { icon: customIcon }).addTo(markersGroup);
             
@@ -375,7 +417,7 @@
                     </div>
                 </td>
                 
-                <td class="text-center"><span class="badge ${estadoClass}" id="estado-${sitio.id}">${estadoText}</span></td>
+                <td class="text-center"><span class="badge ${estadoClass}" id="estado-${sitio.id}">${badgeTexto}</span></td>
                 <td class="text-center" id="ejecutado-${sitio.id}">${ejecutadoFormat}</td>
             `;
             tableBody.appendChild(row);
@@ -442,13 +484,20 @@
 
                     let est = nuevoAvance - nuevoProg;
                     let nuevaClase = "estado-verde";
-                    let nuevoTexto = (est > 0 ? '+' : '') + est.toFixed(2) + '%';
+                    let nuevoEstadoTexto = "Al día";
 
-                    if (est < 0 && est >= -3) nuevaClase = "estado-amarillo";
-                    else if (est < -3) nuevaClase = "estado-rojo";
+                    if (est < 0 && est >= -3) {
+                        nuevaClase = "estado-amarillo";
+                        nuevoEstadoTexto = "Retraso leve";
+                    } else if (est < -3) {
+                        nuevaClase = "estado-rojo";
+                        nuevoEstadoTexto = "Retraso moderado";
+                    }
+
+                    let badgeTexto = nuevoEstadoTexto + ' (' + (est > 0 ? '+' : '') + est.toFixed(2) + '%)';
 
                     badgeEstado.className = `badge ${nuevaClase}`;
-                    badgeEstado.innerText = nuevoTexto;
+                    badgeEstado.innerText = badgeTexto;
 
                     calcularGlobales(sitios);
                     
