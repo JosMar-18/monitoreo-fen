@@ -27,8 +27,9 @@
         .clickable-row:hover { background-color: #e9ecef !important; }
         
         .avance-input { width: 65px; text-align: center; }
-        /* Ajuste 1: Aumentamos el ancho para que no se corten los decimales */
-        .contrato-input { width: 130px !important; padding: 0.25rem 0.5rem; text-align: right; }
+        
+        /* CASILLA DEL CONTRATO: Ancho y texto centrado */
+        .contrato-input { width: 130px !important; padding: 0.25rem 0.5rem; text-align: center; }
         .form-control-sm { font-size: 16px; }
         
         /* Bloquear inputs cuando no está en modo edición */
@@ -38,9 +39,9 @@
             border: none;
             box-shadow: none;
             color: #333;
-            text-align: right;
+            text-align: center; /* CENTRADO */
         }
-        /* Ajuste 2: Quitamos la negrita solo al contrato para que se vea igual que el programado */
+        /* Quitamos la negrita del contrato para igualar al programado */
         .modo-lectura .contrato-input { font-weight: normal; font-size: 0.85rem; }
         .modo-lectura .avance-input { font-weight: bold; text-align: center; }
         .modo-lectura .input-group-text { display: none; }
@@ -70,7 +71,7 @@
             #map, .no-print, .card-header, .table-responsive { overflow: visible !important; max-height: none !important; }
             .no-print { display: none !important; }
             .table { min-width: 100% !important; font-size: 12px; }
-            .contrato-input, .avance-input { border: none; font-weight: normal; text-align: right; }
+            .contrato-input, .avance-input { border: none; font-weight: normal; text-align: center; }
         }
     </style>
 </head>
@@ -127,10 +128,11 @@
                             <thead>
                                 <tr>
                                     <th>Sitio</th>
-                                    <th>Prioridad</th>
-                                    <th>Prog. (S/)</th>
-                                    <th>Contr. (S/)</th>
-                                    <th>Avance (%)</th>
+                                    <th class="text-center">Prioridad</th>
+                                    <!-- ENCABEZADOS CENTRADOS -->
+                                    <th class="text-center">Prog. (S/)</th>
+                                    <th class="text-center">Contr. (S/)</th>
+                                    <th class="text-center">Avance (%)</th>
                                 </tr>
                             </thead>
                             <tbody id="budgetTable">
@@ -246,14 +248,15 @@
 
             var row = document.createElement("tr");
             row.className = "clickable-row";
+            // CELDAS DE DATOS CENTRADAS
             row.innerHTML = `
                 <td><strong>${sitio.nombre}</strong><br><small class="text-muted">${sitio.distrito}</small></td>
-                <td><span class="badge badge-${sitio.prioridad.toLowerCase()}">${sitio.prioridad}</span></td>
-                <td>S/ ${sitio.prog.toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
-                <td><input type="text" class="form-control form-control-sm contrato-input" id="contrato-${sitio.id}" value="${contratoFormat}" placeholder="0.00"></td>
-                <td>
-                    <div class="input-group input-group-sm" style="width: 85px;">
-                        <input type="text" class="form-control avance-input" id="avance-${sitio.id}" value="${avanceFormat}">
+                <td class="text-center"><span class="badge badge-${sitio.prioridad.toLowerCase()}">${sitio.prioridad}</span></td>
+                <td class="text-center">S/ ${sitio.prog.toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
+                <td class="text-center"><input type="text" class="form-control form-control-sm contrato-input mx-auto" id="contrato-${sitio.id}" value="${contratoFormat}" placeholder="0.00"></td>
+                <td class="text-center">
+                    <div class="input-group input-group-sm mx-auto" style="width: 85px;">
+                        <input type="text" class="form-control avance-input text-center" id="avance-${sitio.id}" value="${avanceFormat}">
                     </div>
                 </td>
             `;
