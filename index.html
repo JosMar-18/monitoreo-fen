@@ -149,7 +149,6 @@
                 padding: 0 !important; 
                 width: 100% !important; 
                 max-width: 100% !important; 
-                /* AQUÍ ESTÁ EL AJUSTE DEL 90% PARA LA IMPRESIÓN */
                 zoom: 0.9; 
             }
             .card { border: none !important; box-shadow: none !important; }
@@ -165,13 +164,11 @@
             .table-responsive { overflow: visible !important; max-height: none !important; }
             .table { min-width: 100% !important; width: 100% !important; margin-bottom: 0 !important; }
             
-            /* UNIFICAR TAMAÑO DE LETRA EN IMPRESIÓN */
             .table th, .table td, .table td strong, .table td small { 
                 font-size: 11px !important; 
             }
             .table th, .table td { padding: 4px !important; }
             
-            /* Quitar el efecto sticky en impresión */
             .table th, .table td:first-child { position: static !important; box-shadow: none !important; }
             .table th:first-child::after, .table td:first-child::after { display: none !important; }
             .table th:last-child, .table td:last-child { padding-right: 4px !important; }
@@ -230,7 +227,6 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <!-- PANEL SUPERIOR CON GLOBALES -->
                 <div class="card-header p-2" style="background-color: #f1f3f5; border-bottom: 2px solid #dee2e6;">
                     <div class="row text-center align-items-center">
                         <div class="col-4 border-end border-secondary">
@@ -328,9 +324,10 @@
 
         let pctContr = totalContr > 0 ? (totalEjecutado / totalContr) * 100 : 0;
 
-        document.getElementById('global-total-contr').innerText = 'S/ ' + totalContr.toLocaleString('es-PE', {minimumFractionDigits: 2});
+        // CORREGIDO A 2 DECIMALES EXACTOS
+        document.getElementById('global-total-contr').innerText = 'S/ ' + totalContr.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         document.getElementById('global-avance-contr').innerText = pctContr.toFixed(2) + '%';
-        document.getElementById('global-total-ejecutado').innerText = 'S/ ' + totalEjecutado.toLocaleString('es-PE', {minimumFractionDigits: 2});
+        document.getElementById('global-total-ejecutado').innerText = 'S/ ' + totalEjecutado.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     }
 
     async function cargarDatos() {
@@ -370,7 +367,8 @@
             let progFormat = progVal > 0 ? progVal + '%' : '0%';
             
             let ejecutadoVal = contratoVal * (avanceVal / 100);
-            let ejecutadoFormat = 'S/ ' + ejecutadoVal.toLocaleString('es-PE', {minimumFractionDigits: 2});
+            // CORREGIDO A 2 DECIMALES EXACTOS
+            let ejecutadoFormat = 'S/ ' + ejecutadoVal.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
             let estadoVal = avanceVal - progVal;
             let estadoClass = "estado-verde";
@@ -482,7 +480,8 @@
                     sitio.avance_prog = nuevoProg;
 
                     let ej = nuevoContrato * (nuevoAvance / 100);
-                    tdEjecutado.innerText = 'S/ ' + ej.toLocaleString('es-PE', {minimumFractionDigits: 2});
+                    // CORREGIDO A 2 DECIMALES EXACTOS
+                    tdEjecutado.innerText = 'S/ ' + ej.toLocaleString('es-PE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
                     let est = nuevoAvance - nuevoProg;
                     let nuevaClase = "estado-verde";
