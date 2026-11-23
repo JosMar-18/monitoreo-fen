@@ -120,7 +120,7 @@
         .bg-media { background-color: #ffc107; color: #000 !important; }
         .bg-baja { background-color: #28a745; }
 
-        /* Colores de Situación (Letras más grandes y negrita) */
+        /* Colores de Situación */
         .estado-verde { background-color: #198754; color: white; font-size: 12px; font-weight: bold; padding: 5px 8px; border-radius: 12px; display: inline-block; }
         .estado-amarillo { background-color: #ffc107; color: black; font-size: 12px; font-weight: bold; padding: 5px 8px; border-radius: 12px; display: inline-block; }
         .estado-rojo { background-color: #dc3545; color: white; font-size: 12px; font-weight: bold; padding: 5px 8px; border-radius: 12px; display: inline-block; }
@@ -224,7 +224,7 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <!-- PANEL SUPERIOR CON GLOBALES (FONDO CLARO, TEXTOS OSCUROS) -->
+                <!-- PANEL SUPERIOR CON GLOBALES -->
                 <div class="card-header p-2" style="background-color: #f1f3f5; border-bottom: 2px solid #dee2e6;">
                     <div class="row text-center align-items-center">
                         <div class="col-4 border-end border-secondary">
@@ -368,18 +368,15 @@
 
             let estadoVal = avanceVal - progVal;
             let estadoClass = "estado-verde";
-            let estadoTexto = "Al día";
 
             if (estadoVal < 0 && estadoVal >= -3) {
                 estadoClass = "estado-amarillo";
-                estadoTexto = "Retraso leve";
             } else if (estadoVal < -3) {
                 estadoClass = "estado-rojo";
-                estadoTexto = "Retraso moderado";
             }
             
-            // Texto completo para el badge (Ej: "Al día (+2.5%)")
-            let badgeTexto = estadoTexto + ' (' + (estadoVal > 0 ? '+' : '') + estadoVal.toFixed(2) + '%)';
+            // SOLO EL PORCENTAJE EN LA TABLA
+            let badgeTexto = (estadoVal > 0 ? '+' : '') + estadoVal.toFixed(2) + '%';
 
             var marker = L.marker([sitio.lat, sitio.lng], { icon: customIcon }).addTo(markersGroup);
             
@@ -484,20 +481,18 @@
 
                     let est = nuevoAvance - nuevoProg;
                     let nuevaClase = "estado-verde";
-                    let nuevoEstadoTexto = "Al día";
 
                     if (est < 0 && est >= -3) {
                         nuevaClase = "estado-amarillo";
-                        nuevoEstadoTexto = "Retraso leve";
                     } else if (est < -3) {
                         nuevaClase = "estado-rojo";
-                        nuevoEstadoTexto = "Retraso moderado";
                     }
 
-                    let badgeTexto = nuevoEstadoTexto + ' (' + (est > 0 ? '+' : '') + est.toFixed(2) + '%)';
+                    // SOLO EL PORCENTAJE
+                    let nuevoBadgeTexto = (est > 0 ? '+' : '') + est.toFixed(2) + '%';
 
                     badgeEstado.className = `badge ${nuevaClase}`;
-                    badgeEstado.innerText = badgeTexto;
+                    badgeEstado.innerText = nuevoBadgeTexto;
 
                     calcularGlobales(sitios);
                     
