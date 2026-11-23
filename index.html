@@ -40,10 +40,10 @@
             border-bottom: 2px solid #154360;
         }
         
-        /* EL ARREGLO: Espacio extra solo al final de la tabla */
+        /* EL ARREGLO: Espacio extra solo al final de la tabla (Aumentado a 80px) */
         .table th:last-child, 
         .table td:last-child {
-            padding-right: 35px !important; 
+            padding-right: 80px !important; 
         }
         
         /* =========================================
@@ -145,7 +145,8 @@
             
             .table th:first-child, .table td:first-child { position: static; box-shadow: none; }
             .table th:first-child::after, .table td:first-child::after { display: none; } 
-            .table th:last-child, .table td:last-child { padding-right: 8px !important; } /* Normalizar margen en PDF */
+            /* Normalizar el margen derecho en el PDF para que no quede un espacio en blanco gigante */
+            .table th:last-child, .table td:last-child { padding-right: 8px !important; } 
         }
     </style>
 </head>
