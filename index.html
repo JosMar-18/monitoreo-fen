@@ -40,8 +40,14 @@
             border-bottom: 2px solid #154360;
         }
         
+        /* EL ARREGLO: Espacio extra solo al final de la tabla */
+        .table th:last-child, 
+        .table td:last-child {
+            padding-right: 35px !important; 
+        }
+        
         /* =========================================
-           COLUMNA DEL SITIO FIJA (STICKY) - SOLUCIÓN DEFINITIVA
+           COLUMNA DEL SITIO FIJA (STICKY)
            ========================================= */
         .table th:first-child,
         .table td:first-child {
@@ -49,20 +55,18 @@
             left: 0;
             z-index: 2;
             background-color: #ffffff;
-            /* Quitamos el border-right porque causaba el error al deslizar */
             border-right: none; 
         }
         
-        /* La magia: Dibujamos la línea vertical por encima de todo usando un pseudo-elemento */
         .table th:first-child::after,
         .table td:first-child::after {
             content: "";
             position: absolute;
             top: 0;
-            right: -2px; /* Desplazamos un poco para que cubra el borde */
+            right: -2px; 
             bottom: 0;
             width: 2px;
-            background-color: #adb5bd; /* Color de la línea */
+            background-color: #adb5bd; 
             z-index: 10;
         }
 
@@ -71,7 +75,6 @@
             background-color: #1e6091 !important; 
         }
 
-        /* Sombra sutil */
         .table td:first-child {
             box-shadow: 4px 0 6px -3px rgba(0,0,0,0.2);
         }
@@ -140,9 +143,9 @@
             .card-header { background-color: #212529 !important; color: white !important; }
             #global-avance-contr { color: #28a745 !important; }
             
-            /* En impresión quitamos la columna fija para que se vea como tabla normal */
             .table th:first-child, .table td:first-child { position: static; box-shadow: none; }
-            .table th:first-child::after, .table td:first-child::after { display: none; } /* Ocultar línea extra en PDF */
+            .table th:first-child::after, .table td:first-child::after { display: none; } 
+            .table th:last-child, .table td:last-child { padding-right: 8px !important; } /* Normalizar margen en PDF */
         }
     </style>
 </head>
