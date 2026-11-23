@@ -231,7 +231,8 @@
                                     <th class="text-center">Avance Prog. (%)</th>
                                     <th class="text-center">Avance Ejec. (%)</th>
                                     <th class="text-center">Estado</th>
-                                    <th class="text-center">Ejecutado (S/)</th>
+                                    <!-- NOMBRE DE COLUMNA ACTUALIZADO AQUÍ -->
+                                    <th class="text-center">Monto Ejec (S/.)</th>
                                 </tr>
                             </thead>
                             <tbody id="budgetTable">
@@ -272,7 +273,7 @@
 
         sitios.forEach(s => {
             let c = Number(s.contrato) || 0;
-            let a = Number(s.avance_ejec) || 0; // CAMBIADO A avance_ejec
+            let a = Number(s.avance_ejec) || 0;
 
             totalContr += c;
             totalEjecutado += (c * (a / 100));
@@ -313,9 +314,8 @@
             let iconHtml = `<div class="custom-icon ${claseForma} ${claseColor}"><span>${letraIcono}</span></div>`;
             var customIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [26, 26], iconAnchor: [13, 13] });
 
-            // LEEMOS LAS NUEVAS COLUMNAS
             let contratoVal = sitio.contrato || 0;
-            let avanceVal = sitio.avance_ejec || 0; // CAMBIADO A avance_ejec
+            let avanceVal = sitio.avance_ejec || 0;
             let progVal = sitio.avance_prog || 0;
             
             let contratoFormat = contratoVal > 0 ? 'S/ ' + Number(contratoVal).toLocaleString('es-PE', {minimumFractionDigits: 2}) : '';
@@ -345,7 +345,7 @@
                     <span class="text-muted">Distrito: ${sitio.distrito}</span><br><hr style="margin: 6px 0;">
                     <b>Prioridad:</b> <span class="popup-highlight-badge" style="background-color: ${colorPrioridadHex}; color: ${sitio.prioridad === 'MEDIA' ? 'black' : 'white'};">${sitio.prioridad}</span><br>
                     <b>Ppto Contr:</b> S/ ${Number(contratoVal).toLocaleString('es-PE')}<br>
-                    <b>Ejecutado:</b> ${ejecutadoFormat}<br>
+                    <b>Monto Ejec:</b> ${ejecutadoFormat}<br>
                     <div style="margin-top: 8px; background: #e9ecef; padding: 6px; border-radius: 6px; text-align: center;">
                         <span style="font-size: 11px; text-transform: uppercase; color: #6c757d;">Avance Ejec.</span>
                         <span class="popup-highlight-avance" id="popup-avance-${sitio.id}">${avanceVal}%</span>
@@ -419,7 +419,6 @@
                 let nuevoAvance = rawAvan === "" ? 0 : parseFloat(rawAvan);
                 let nuevoProg = rawProg === "" ? 0 : parseFloat(rawProg);
 
-                // GUARDAMOS USANDO LOS NUEVOS NOMBRES DE COLUMNA
                 const { error } = await supabaseClient
                     .from('sitios')
                     .update({ 
