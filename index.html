@@ -26,26 +26,24 @@
         #map { height: 45vh; width: 100%; border-radius: 8px; border: 2px solid #333; z-index: 1; }
         
         .table-responsive { max-height: 38vh; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        
-        /* AUMENTAMOS EL ANCHO MÍNIMO DE LA TABLA */
-        .table { min-width: 650px; }
+        .table { min-width: 700px; /* Aumentado para acomodar la nueva columna */ }
         
         /* ENCABEZADOS DE LA TABLA - AZUL MEDIO */
         .table th { 
             position: sticky; 
             top: 0; 
             z-index: 2; 
-            background-color: #1e6091 !important; /* AZUL MEDIO */
+            background-color: #1e6091 !important;
             color: white; 
             font-size: 0.75rem; 
             white-space: nowrap; 
             border-bottom: 2px solid #154360;
         }
         
-        /* COLCHÓN INVISIBLE MÁS GRANDE (150px) AL FINAL */
+        /* COLCHÓN INVISIBLE AL FINAL DE LA TABLA EN PANTALLA */
         .table th:last-child, 
         .table td:last-child {
-            padding-right: 150px !important; 
+            padding-right: 60px !important; 
         }
         
         /* =========================================
@@ -129,12 +127,30 @@
         .badge-media { background-color: #ffc107; color: black; }
         .badge-baja { background-color: #28a745; color: white; }
 
+        /* =========================================
+           CONFIGURACIÓN PARA IMPRESIÓN EN HOJA A4
+           ========================================= */
         @media print {
-            body { background-color: white; }
-            #map, .no-print, .card-header, .table-responsive { overflow: visible !important; max-height: none !important; }
-            .no-print { display: none !important; }
-            .table { min-width: 100% !important; font-size: 12px; }
-            .contrato-input, .avance-input { border: none; font-weight: normal; text-align: center; padding: 0; }
+            @page { 
+                size: A4 portrait; 
+                margin: 1cm; 
+            }
+            body { background-color: white !important; }
+            #map, .no-print, .card-header, .btn { display: none !important; }
+            .container-fluid { padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+            .card { border: none !important; box-shadow: none !important; }
+            
+            .table-responsive { overflow: visible !important; max-height: none !important; }
+            .table { min-width: 100% !important; width: 100% !important; margin-bottom: 0 !important; font-size: 11px !important; }
+            .table th, .table td { padding: 4px !important; }
+            
+            /* Quitar el efecto sticky en impresión */
+            .table th, .table td:first-child { position: static !important; box-shadow: none !important; }
+            .table th:first-child::after, .table td:first-child::after { display: none !important; }
+            .table th:last-child, .table td:last-child { padding-right: 4px !important; }
+            
+            /* Ajustar inputs para que parezcan texto normal en el PDF */
+            .modo-lectura .contrato-input, .modo-lectura .avance-input { border: none; font-weight: normal; text-align: center; padding: 0; }
             
             /* FORZAR COLORES EN IMPRESIÓN */
             .table th { background-color: #1e6091 !important; color: white !important; }
@@ -142,13 +158,16 @@
             .badge-alta { background-color: #dc3545 !important; color: white !important; }
             .badge-media { background-color: #ffc107 !important; color: black !important; }
             .badge-baja { background-color: #28a745 !important; color: white !important; }
-            .card-header { background-color: #212529 !important; color: white !important; }
-            #global-avance-contr { color: #28a745 !important; }
             
-            .table th:first-child, .table td:first-child { position: static; box-shadow: none; }
-            .table th:first-child::after, .table td:first-child::after { display: none; } 
-            /* Normalizar el margen derecho en el PDF */
-            .table th:last-child, .table td:last-child { padding-right: 8px !important; } 
+            /* Hacer visible el panel de resumen en el PDF */
+            .print-summary { 
+                display: block !important; 
+                border: 1px solid #ccc; 
+                margin-bottom: 10px; 
+                background-color: #212529 !important; 
+                color: white !important; 
+                padding: 10px; 
+            }
         }
     </style>
 </head>
@@ -178,15 +197,19 @@
         <div class="col-12">
             <div class="card shadow-sm">
                 <!-- PANEL SUPERIOR CON GLOBALES -->
-                <div class="card-header bg-dark text-white p-2">
+                <div class="card-header bg-dark text-white p-2 no-print">
                     <div class="row text-center align-items-center">
-                        <div class="col-6 border-end border-secondary">
-                            <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Avance Contr. Global</div>
+                        <div class="col-4 border-end border-secondary">
+                            <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Avance Global</div>
                             <div id="global-avance-contr" class="font-weight-bold text-success" style="font-size: 18px;">0.00%</div>
                         </div>
-                        <div class="col-6">
+                        <div class="col-4 border-end border-secondary">
                             <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Total Contr.</div>
                             <div id="global-total-contr" class="font-weight-bold" style="font-size: 15px;">S/ 0.00</div>
+                        </div>
+                        <div class="col-4">
+                            <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Total Ejecutado</div>
+                            <div id="global-total-ejecutado" class="font-weight-bold text-info" style="font-size: 15px;">S/ 0.00</div>
                         </div>
                     </div>
                 </div>
@@ -200,10 +223,11 @@
                                     <th class="text-center">Prioridad</th>
                                     <th class="text-center">Contr. (S/)</th>
                                     <th class="text-center">Avance (%)</th>
+                                    <th class="text-center">Ejecutado (S/)</th>
                                 </tr>
                             </thead>
                             <tbody id="budgetTable">
-                                <tr><td colspan="4" class="text-center py-3">Cargando datos de la nube...</td></tr>
+                                <tr><td colspan="5" class="text-center py-3">Cargando datos de la nube...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -237,6 +261,7 @@
     function calcularGlobales(sitios) {
         let totalContr = 0;
         let sumAvanceContr = 0;
+        let totalEjecutado = 0;
 
         sitios.forEach(s => {
             let c = Number(s.contrato) || 0;
@@ -244,12 +269,14 @@
 
             totalContr += c;
             sumAvanceContr += (a * c);
+            totalEjecutado += (c * (a / 100));
         });
 
         let pctContr = totalContr > 0 ? (sumAvanceContr / totalContr) : 0;
 
         document.getElementById('global-total-contr').innerText = 'S/ ' + totalContr.toLocaleString('es-PE', {minimumFractionDigits: 2});
         document.getElementById('global-avance-contr').innerText = pctContr.toFixed(2) + '%';
+        document.getElementById('global-total-ejecutado').innerText = 'S/ ' + totalEjecutado.toLocaleString('es-PE', {minimumFractionDigits: 2});
     }
 
     async function cargarDatos() {
@@ -260,7 +287,7 @@
 
         if (error) {
             console.error("Error cargando datos:", error);
-            tableBody.innerHTML = `<tr><td colspan="4" class="text-danger text-center">Error al conectar con la base de datos.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="5" class="text-danger text-center">Error al conectar con la base de datos.</td></tr>`;
             return;
         }
 
@@ -285,6 +312,10 @@
             
             let contratoFormat = contratoVal > 0 ? 'S/ ' + Number(contratoVal).toLocaleString('es-PE', {minimumFractionDigits: 2}) : '';
             let avanceFormat = avanceVal > 0 ? avanceVal + '%' : '0%';
+            
+            // CÁLCULO DEL MONTO EJECUTADO
+            let ejecutadoVal = contratoVal * (avanceVal / 100);
+            let ejecutadoFormat = 'S/ ' + ejecutadoVal.toLocaleString('es-PE', {minimumFractionDigits: 2});
 
             var marker = L.marker([sitio.lat, sitio.lng], { icon: customIcon }).addTo(markersGroup);
             
@@ -296,6 +327,7 @@
                     <span class="text-muted">Distrito: ${sitio.distrito}</span><br><hr style="margin: 6px 0;">
                     <b>Prioridad:</b> <span class="popup-highlight-badge" style="background-color: ${colorPrioridadHex}; color: ${sitio.prioridad === 'MEDIA' ? 'black' : 'white'};">${sitio.prioridad}</span><br>
                     <b>Ppto Contr:</b> S/ ${Number(contratoVal).toLocaleString('es-PE')}<br>
+                    <b>Ejecutado:</b> ${ejecutadoFormat}<br>
                     <div style="margin-top: 8px; background: #e9ecef; padding: 6px; border-radius: 6px; text-align: center;">
                         <span style="font-size: 11px; text-transform: uppercase; color: #6c757d;">Avance Actual</span>
                         <span class="popup-highlight-avance" id="popup-avance-${sitio.id}">${avanceVal}%</span>
@@ -314,6 +346,7 @@
                         <input type="text" class="form-control avance-input text-center" id="avance-${sitio.id}" value="${avanceFormat}">
                     </div>
                 </td>
+                <td class="text-center" id="ejecutado-${sitio.id}">${ejecutadoFormat}</td>
             `;
             tableBody.appendChild(row);
 
@@ -325,6 +358,7 @@
 
             let inputAvance = document.getElementById(`avance-${sitio.id}`);
             let inputContrato = document.getElementById(`contrato-${sitio.id}`);
+            let tdEjecutado = document.getElementById(`ejecutado-${sitio.id}`);
 
             inputContrato.addEventListener("focus", function() {
                 let raw = this.value.replace(/[^0-9.]/g, ''); 
@@ -354,6 +388,10 @@
                     sitio.avance = nuevoAvance;
                     sitio.contrato = nuevoContrato;
                     calcularGlobales(sitios);
+                    
+                    // Actualizar monto ejecutado en la tabla
+                    let ej = nuevoContrato * (nuevoAvance / 100);
+                    tdEjecutado.innerText = 'S/ ' + ej.toLocaleString('es-PE', {minimumFractionDigits: 2});
                 }
             });
 
@@ -379,6 +417,10 @@
                     sitio.avance = nuevoAvance;
                     sitio.contrato = nuevoContrato;
                     calcularGlobales(sitios);
+                    
+                    // Actualizar monto ejecutado en la tabla
+                    let ej = nuevoContrato * (nuevoAvance / 100);
+                    tdEjecutado.innerText = 'S/ ' + ej.toLocaleString('es-PE', {minimumFractionDigits: 2});
                     
                     let popupAvance = document.getElementById(`popup-avance-${sitio.id}`);
                     if (popupAvance) {
