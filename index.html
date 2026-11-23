@@ -27,7 +27,7 @@
         .clickable-row:hover { background-color: #e9ecef !important; }
         
         .avance-input { width: 65px; text-align: center; }
-        .contrato-input { width: 100px !important; padding: 0.25rem 0.5rem; text-align: right; }
+        .contrato-input { width: 105px !important; padding: 0.25rem 0.5rem; text-align: right; }
         .form-control-sm { font-size: 16px; }
         
         /* Bloquear inputs cuando no está en modo edición */
@@ -223,8 +223,8 @@
             let contratoVal = sitio.contrato || 0;
             let avanceVal = sitio.avance || 0;
             
-            // Formatear los valores para que se vean bonitos desde el inicio
-            let contratoFormat = contratoVal > 0 ? Number(contratoVal).toLocaleString('es-PE', {minimumFractionDigits: 2}) : '';
+            // EL ARREGLO ESTÁ AQUÍ: Añadimos 'S/ ' antes del número
+            let contratoFormat = contratoVal > 0 ? 'S/ ' + Number(contratoVal).toLocaleString('es-PE', {minimumFractionDigits: 2}) : '';
             let avanceFormat = avanceVal > 0 ? avanceVal + '%' : '0%';
 
             var marker = L.marker([sitio.lat, sitio.lng], { icon: customIcon }).addTo(markersGroup);
@@ -271,13 +271,11 @@
 
             // --- MAGIA PARA FORMATEAR AL ENTRAR Y SALIR DE LA CASILLA ---
             
-            // Contrato: Al entrar, quitar 'S/' y comas para facilitar escritura
             inputContrato.addEventListener("focus", function() {
                 let raw = this.value.replace(/[^0-9.]/g, ''); 
                 this.value = raw === '0' ? '' : raw;
             });
 
-            // Contrato: Al salir, formatear bonito
             inputContrato.addEventListener("blur", async function() {
                 let raw = this.value.replace(/[^0-9.]/g, '');
                 let nuevoContrato = raw === "" ? 0 : parseFloat(raw);
@@ -304,12 +302,10 @@
                 }
             });
 
-            // Avance: Al entrar, quitar '%'
             inputAvance.addEventListener("focus", function() {
                 this.value = this.value.replace(/[^0-9.]/g, '');
             });
 
-            // Avance: Al salir, poner '%' y guardar
             inputAvance.addEventListener("blur", async function() {
                 let raw = this.value.replace(/[^0-9.]/g, '');
                 let nuevoAvance = raw === "" ? 0 : parseFloat(raw);
@@ -336,7 +332,6 @@
                 }
             });
 
-            // Guardar al presionar Enter
             inputAvance.addEventListener("keydown", function(e) { if (e.key === 'Enter') this.blur(); });
             inputContrato.addEventListener("keydown", function(e) { if (e.key === 'Enter') this.blur(); });
         });
