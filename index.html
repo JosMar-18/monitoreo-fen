@@ -27,7 +27,8 @@
         .clickable-row:hover { background-color: #e9ecef !important; }
         
         .avance-input { width: 65px; text-align: center; }
-        .contrato-input { width: 105px !important; padding: 0.25rem 0.5rem; text-align: right; }
+        /* Ajuste 1: Aumentamos el ancho para que no se corten los decimales */
+        .contrato-input { width: 130px !important; padding: 0.25rem 0.5rem; text-align: right; }
         .form-control-sm { font-size: 16px; }
         
         /* Bloquear inputs cuando no está en modo edición */
@@ -37,10 +38,11 @@
             border: none;
             box-shadow: none;
             color: #333;
-            font-weight: bold;
             text-align: right;
         }
-        .modo-lectura .avance-input { text-align: center; }
+        /* Ajuste 2: Quitamos la negrita solo al contrato para que se vea igual que el programado */
+        .modo-lectura .contrato-input { font-weight: normal; font-size: 0.85rem; }
+        .modo-lectura .avance-input { font-weight: bold; text-align: center; }
         .modo-lectura .input-group-text { display: none; }
 
         /* Estilos de los Tooltips e Íconos */
@@ -68,7 +70,7 @@
             #map, .no-print, .card-header, .table-responsive { overflow: visible !important; max-height: none !important; }
             .no-print { display: none !important; }
             .table { min-width: 100% !important; font-size: 12px; }
-            .contrato-input, .avance-input { border: none; font-weight: bold; text-align: right; }
+            .contrato-input, .avance-input { border: none; font-weight: normal; text-align: right; }
         }
     </style>
 </head>
@@ -163,7 +165,6 @@
     var tableBody = document.getElementById("budgetTable");
     var markersGroup = L.featureGroup().addTo(map);
 
-    // Función para calcular los globales
     function calcularGlobales(sitios) {
         let totalProg = 0;
         let totalContr = 0;
@@ -207,7 +208,6 @@
         markersGroup.clearLayers(); 
 
         sitios.forEach(function(sitio) {
-            // Lógica de íconos
             let letraIcono = "CA", claseForma = "icon-circle";
             if (sitio.tipo === "Museo") { letraIcono = "M"; claseForma = "icon-square"; }
             else if (sitio.tipo === "Zona") { letraIcono = "ZA"; claseForma = "icon-diamond"; }
@@ -223,7 +223,6 @@
             let contratoVal = sitio.contrato || 0;
             let avanceVal = sitio.avance || 0;
             
-            // EL ARREGLO ESTÁ AQUÍ: Añadimos 'S/ ' antes del número
             let contratoFormat = contratoVal > 0 ? 'S/ ' + Number(contratoVal).toLocaleString('es-PE', {minimumFractionDigits: 2}) : '';
             let avanceFormat = avanceVal > 0 ? avanceVal + '%' : '0%';
 
@@ -269,8 +268,6 @@
             let inputAvance = document.getElementById(`avance-${sitio.id}`);
             let inputContrato = document.getElementById(`contrato-${sitio.id}`);
 
-            // --- MAGIA PARA FORMATEAR AL ENTRAR Y SALIR DE LA CASILLA ---
-            
             inputContrato.addEventListener("focus", function() {
                 let raw = this.value.replace(/[^0-9.]/g, ''); 
                 this.value = raw === '0' ? '' : raw;
