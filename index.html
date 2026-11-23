@@ -20,7 +20,7 @@
         #map { height: 45vh; width: 100%; border-radius: 8px; border: 2px solid #333; z-index: 1; }
         
         .table-responsive { max-height: 38vh; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .table { min-width: 650px; }
+        .table { min-width: 500px; } /* Reducido porque hay menos columnas */
         .table th { position: sticky; top: 0; z-index: 2; background-color: #212529 !important; color: white; font-size: 0.75rem; white-space: nowrap; }
         
         .clickable-row { cursor: pointer; transition: background-color 0.2s; }
@@ -28,7 +28,7 @@
         
         .avance-input { width: 65px; text-align: center; }
         
-        /* CASILLA DEL CONTRATO: Ancho y texto centrado */
+        /* Casilla del contrato */
         .contrato-input { width: 130px !important; padding: 0.25rem 0.5rem; text-align: center; }
         .form-control-sm { font-size: 16px; }
         
@@ -39,9 +39,9 @@
             border: none;
             box-shadow: none;
             color: #333;
-            text-align: center; /* CENTRADO */
+            text-align: center;
+            padding: 0; /* Quita márgenes internos para alinear perfecto */
         }
-        /* Quitamos la negrita del contrato para igualar al programado */
         .modo-lectura .contrato-input { font-weight: normal; font-size: 0.85rem; }
         .modo-lectura .avance-input { font-weight: bold; text-align: center; }
         .modo-lectura .input-group-text { display: none; }
@@ -71,7 +71,7 @@
             #map, .no-print, .card-header, .table-responsive { overflow: visible !important; max-height: none !important; }
             .no-print { display: none !important; }
             .table { min-width: 100% !important; font-size: 12px; }
-            .contrato-input, .avance-input { border: none; font-weight: normal; text-align: center; }
+            .contrato-input, .avance-input { border: none; font-weight: normal; text-align: center; padding: 0; }
         }
     </style>
 </head>
@@ -100,22 +100,14 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <!-- PANEL SUPERIOR CON GLOBALES -->
+                <!-- PANEL SUPERIOR CON GLOBALES (SOLO CONTRACTUAL) -->
                 <div class="card-header bg-dark text-white p-2">
                     <div class="row text-center align-items-center">
-                        <div class="col-6 col-md-3 border-end border-secondary">
-                            <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Avance Prog. Global</div>
-                            <div id="global-avance-prog" class="font-weight-bold text-info" style="font-size: 18px;">0.00%</div>
-                        </div>
-                        <div class="col-6 col-md-3 border-end border-secondary">
-                            <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Total Prog.</div>
-                            <div id="global-total-prog" class="font-weight-bold" style="font-size: 15px;">S/ 0.00</div>
-                        </div>
-                        <div class="col-6 col-md-3 border-end border-secondary mt-2 mt-md-0">
+                        <div class="col-6 border-end border-secondary">
                             <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Avance Contr. Global</div>
                             <div id="global-avance-contr" class="font-weight-bold text-success" style="font-size: 18px;">0.00%</div>
                         </div>
-                        <div class="col-6 col-md-3 mt-2 mt-md-0">
+                        <div class="col-6">
                             <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Total Contr.</div>
                             <div id="global-total-contr" class="font-weight-bold" style="font-size: 15px;">S/ 0.00</div>
                         </div>
@@ -129,14 +121,12 @@
                                 <tr>
                                     <th>Sitio</th>
                                     <th class="text-center">Prioridad</th>
-                                    <!-- ENCABEZADOS CENTRADOS -->
-                                    <th class="text-center">Prog. (S/)</th>
                                     <th class="text-center">Contr. (S/)</th>
                                     <th class="text-center">Avance (%)</th>
                                 </tr>
                             </thead>
                             <tbody id="budgetTable">
-                                <tr><td colspan="5" class="text-center py-3">Cargando datos de la nube...</td></tr>
+                                <tr><td colspan="4" class="text-center py-3">Cargando datos de la nube...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -167,30 +157,22 @@
     var tableBody = document.getElementById("budgetTable");
     var markersGroup = L.featureGroup().addTo(map);
 
+    // Función para calcular los globales SOLO del Contractual
     function calcularGlobales(sitios) {
-        let totalProg = 0;
         let totalContr = 0;
-        let sumAvanceProg = 0;
         let sumAvanceContr = 0;
 
         sitios.forEach(s => {
-            let p = Number(s.prog) || 0;
             let c = Number(s.contrato) || 0;
             let a = Number(s.avance) || 0;
 
-            totalProg += p;
             totalContr += c;
-            
-            sumAvanceProg += (a * p);
             sumAvanceContr += (a * c);
         });
 
-        let pctProg = totalProg > 0 ? (sumAvanceProg / totalProg) : 0;
         let pctContr = totalContr > 0 ? (sumAvanceContr / totalContr) : 0;
 
-        document.getElementById('global-total-prog').innerText = 'S/ ' + totalProg.toLocaleString('es-PE', {minimumFractionDigits: 2});
         document.getElementById('global-total-contr').innerText = 'S/ ' + totalContr.toLocaleString('es-PE', {minimumFractionDigits: 2});
-        document.getElementById('global-avance-prog').innerText = pctProg.toFixed(2) + '%';
         document.getElementById('global-avance-contr').innerText = pctContr.toFixed(2) + '%';
     }
 
@@ -202,7 +184,7 @@
 
         if (error) {
             console.error("Error cargando datos:", error);
-            tableBody.innerHTML = `<tr><td colspan="5" class="text-danger text-center">Error al conectar con la base de datos.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="4" class="text-danger text-center">Error al conectar con la base de datos.</td></tr>`;
             return;
         }
 
@@ -237,7 +219,6 @@
                     <b>${sitio.nombre}</b><br>
                     <span class="text-muted">Distrito: ${sitio.distrito}</span><br><hr style="margin: 6px 0;">
                     <b>Prioridad:</b> <span class="popup-highlight-badge" style="background-color: ${colorPrioridadHex}; color: ${sitio.prioridad === 'MEDIA' ? 'black' : 'white'};">${sitio.prioridad}</span><br>
-                    <b>Ppto Prog:</b> S/ ${sitio.prog.toLocaleString('es-PE')}<br>
                     <b>Ppto Contr:</b> S/ ${Number(contratoVal).toLocaleString('es-PE')}<br>
                     <div style="margin-top: 8px; background: #e9ecef; padding: 6px; border-radius: 6px; text-align: center;">
                         <span style="font-size: 11px; text-transform: uppercase; color: #6c757d;">Avance Actual</span>
@@ -248,11 +229,9 @@
 
             var row = document.createElement("tr");
             row.className = "clickable-row";
-            // CELDAS DE DATOS CENTRADAS
             row.innerHTML = `
                 <td><strong>${sitio.nombre}</strong><br><small class="text-muted">${sitio.distrito}</small></td>
                 <td class="text-center"><span class="badge badge-${sitio.prioridad.toLowerCase()}">${sitio.prioridad}</span></td>
-                <td class="text-center">S/ ${sitio.prog.toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
                 <td class="text-center"><input type="text" class="form-control form-control-sm contrato-input mx-auto" id="contrato-${sitio.id}" value="${contratoFormat}" placeholder="0.00"></td>
                 <td class="text-center">
                     <div class="input-group input-group-sm mx-auto" style="width: 85px;">
