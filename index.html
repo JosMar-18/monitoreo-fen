@@ -20,8 +20,18 @@
         #map { height: 45vh; width: 100%; border-radius: 8px; border: 2px solid #333; z-index: 1; }
         
         .table-responsive { max-height: 38vh; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .table { min-width: 550px; /* Ajustado para que quepa bien en móvil */ }
-        .table th { position: sticky; top: 0; z-index: 2; background-color: #212529 !important; color: white; font-size: 0.75rem; white-space: nowrap; }
+        .table { min-width: 550px; }
+        
+        /* ENCABEZADOS DE LA TABLA */
+        .table th { 
+            position: sticky; 
+            top: 0; 
+            z-index: 2; 
+            background-color: #212529 !important; 
+            color: white; 
+            font-size: 0.75rem; 
+            white-space: nowrap; 
+        }
         
         /* =========================================
            MAGIA: COLUMNA DEL SITIO FIJA (STICKY)
@@ -31,24 +41,28 @@
             position: sticky;
             left: 0;
             z-index: 2;
-            background-color: #ffffff; /* Fondo sólido para que no se transparente */
+            background-color: #ffffff; /* Fondo sólido */
+            border-right: 2px solid #adb5bd; /* LÍNEA VERTICAL DIVISORIA */
         }
         
         /* El encabezado del Sitio debe estar por encima de todo */
         .table th:first-child {
             z-index: 3;
             background-color: #212529 !important;
+            border-right: 2px solid #adb5bd;
         }
 
-        /* Sombra a la derecha de la columna fija para dar efecto 3D */
+        /* Sombra sutil a la derecha de la columna fija */
         .table td:first-child {
-            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.15);
+            box-shadow: 4px 0 6px -3px rgba(0,0,0,0.2);
         }
 
         /* Mantener los colores del fondo rayado (striped) en la columna fija */
         .table-striped > tbody > tr:nth-of-type(odd) > td:first-child {
-            background-color: #f2f2f2; 
+            background-color: #f9f9f9; 
         }
+        
+        /* Mantener el color gris al pasar el mouse por la fila */
         .table-hover > tbody > tr:hover > td:first-child {
             background-color: #e9ecef;
         }
@@ -100,8 +114,8 @@
             .no-print { display: none !important; }
             .table { min-width: 100% !important; font-size: 12px; }
             .contrato-input, .avance-input { border: none; font-weight: normal; text-align: center; padding: 0; }
-            /* En impresión, quitamos el sticky para que la tabla sea normal */
-            .table th:first-child, .table td:first-child { position: static; box-shadow: none; background-color: transparent; }
+            /* En impresión, quitamos el sticky */
+            .table th:first-child, .table td:first-child { position: static; box-shadow: none; background-color: transparent; border-right: none; }
         }
     </style>
 </head>
@@ -130,7 +144,7 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <!-- PANEL SUPERIOR CON GLOBALES (SOLO CONTRACTUAL) -->
+                <!-- PANEL SUPERIOR CON GLOBALES -->
                 <div class="card-header bg-dark text-white p-2">
                     <div class="row text-center align-items-center">
                         <div class="col-6 border-end border-secondary">
@@ -187,7 +201,6 @@
     var tableBody = document.getElementById("budgetTable");
     var markersGroup = L.featureGroup().addTo(map);
 
-    // Función para calcular los globales SOLO del Contractual
     function calcularGlobales(sitios) {
         let totalContr = 0;
         let sumAvanceContr = 0;
