@@ -145,7 +145,13 @@
             }
             body { background-color: white !important; }
             #map, .no-print, .btn { display: none !important; }
-            .container-fluid { padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+            .container-fluid { 
+                padding: 0 !important; 
+                width: 100% !important; 
+                max-width: 100% !important; 
+                /* AQUÍ ESTÁ EL AJUSTE DEL 90% PARA LA IMPRESIÓN */
+                zoom: 0.9; 
+            }
             .card { border: none !important; box-shadow: none !important; }
             
             .card-header { 
@@ -375,7 +381,6 @@
                 estadoClass = "estado-rojo";
             }
             
-            // SOLO EL PORCENTAJE EN LA TABLA
             let badgeTexto = (estadoVal > 0 ? '+' : '') + estadoVal.toFixed(2) + '%';
 
             var marker = L.marker([sitio.lat, sitio.lng], { icon: customIcon }).addTo(markersGroup);
@@ -488,7 +493,6 @@
                         nuevaClase = "estado-rojo";
                     }
 
-                    // SOLO EL PORCENTAJE
                     let nuevoBadgeTexto = (est > 0 ? '+' : '') + est.toFixed(2) + '%';
 
                     badgeEstado.className = `badge ${nuevaClase}`;
