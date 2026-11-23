@@ -26,7 +26,7 @@
         #map { height: 45vh; width: 100%; border-radius: 8px; border: 2px solid #333; z-index: 1; }
         
         .table-responsive { max-height: 38vh; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .table { min-width: 700px; /* Aumentado para acomodar la nueva columna */ }
+        .table { min-width: 850px; /* Ancho extra para que quepan las 7 columnas */ }
         
         /* ENCABEZADOS DE LA TABLA - AZUL MEDIO */
         .table th { 
@@ -90,12 +90,12 @@
         
         .clickable-row { cursor: pointer; transition: background-color 0.2s; }
         
-        .avance-input { width: 65px; text-align: center; }
-        .contrato-input { width: 130px !important; padding: 0.25rem 0.5rem; text-align: center; }
+        .avance-input, .prog-input { width: 60px; text-align: center; }
+        .contrato-input { width: 110px !important; padding: 0.25rem 0.5rem; text-align: center; }
         .form-control-sm { font-size: 16px; }
         
         /* Bloquear inputs cuando no está en modo edición */
-        .modo-lectura .contrato-input, .modo-lectura .avance-input {
+        .modo-lectura .contrato-input, .modo-lectura .avance-input, .modo-lectura .prog-input {
             pointer-events: none;
             background-color: transparent;
             border: none;
@@ -105,7 +105,7 @@
             padding: 0;
         }
         .modo-lectura .contrato-input { font-weight: normal; font-size: 0.85rem; }
-        .modo-lectura .avance-input { font-weight: bold; text-align: center; }
+        .modo-lectura .avance-input, .modo-lectura .prog-input { font-weight: bold; text-align: center; }
         .modo-lectura .input-group-text { display: none; }
 
         /* Estilos de los Tooltips e Íconos */
@@ -120,6 +120,11 @@
         .bg-media { background-color: #ffc107; color: #000 !important; }
         .bg-baja { background-color: #28a745; }
 
+        /* Colores de Estado */
+        .estado-verde { background-color: #28a745; color: white; }
+        .estado-amarillo { background-color: #ffc107; color: black; }
+        .estado-rojo { background-color: #dc3545; color: white; }
+
         .popup-highlight-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 12px; color: white; }
         .popup-highlight-avance { font-size: 20px; font-weight: 900; color: #007bff; display: block; margin-top: 5px; }
         
@@ -128,20 +133,23 @@
         .badge-baja { background-color: #28a745; color: white; }
 
         /* =========================================
-           CONFIGURACIÓN PARA IMPRESIÓN EN HOJA A4
+           CONFIGURACIÓN PARA IMPRESIÓN EN HOJA A4 (HORIZONTAL)
            ========================================= */
         @media print {
             @page { 
-                size: A4 portrait; 
-                margin: 1cm; 
+                size: A4 landscape; /* HOJA HORIZONTAL PARA QUE ENTREN LAS COLUMNAS */
+                margin: 0.5cm; 
             }
             body { background-color: white !important; }
-            #map, .no-print, .card-header, .btn { display: none !important; }
+            #map, .no-print, .btn { display: none !important; }
             .container-fluid { padding: 0 !important; width: 100% !important; max-width: 100% !important; }
             .card { border: none !important; box-shadow: none !important; }
             
+            /* Hacer visible el panel superior en el PDF */
+            .card-header { display: block !important; -webkit-print-color-adjust: exact !important; padding: 5px !important; }
+            
             .table-responsive { overflow: visible !important; max-height: none !important; }
-            .table { min-width: 100% !important; width: 100% !important; margin-bottom: 0 !important; font-size: 11px !important; }
+            .table { min-width: 100% !important; width: 100% !important; margin-bottom: 0 !important; font-size: 9px !important; }
             .table th, .table td { padding: 4px !important; }
             
             /* Quitar el efecto sticky en impresión */
@@ -150,7 +158,7 @@
             .table th:last-child, .table td:last-child { padding-right: 4px !important; }
             
             /* Ajustar inputs para que parezcan texto normal en el PDF */
-            .modo-lectura .contrato-input, .modo-lectura .avance-input { border: none; font-weight: normal; text-align: center; padding: 0; }
+            .modo-lectura .contrato-input, .modo-lectura .avance-input, .modo-lectura .prog-input { border: none; font-weight: normal; text-align: center; padding: 0; }
             
             /* FORZAR COLORES EN IMPRESIÓN */
             .table th { background-color: #1e6091 !important; color: white !important; }
@@ -159,15 +167,13 @@
             .badge-media { background-color: #ffc107 !important; color: black !important; }
             .badge-baja { background-color: #28a745 !important; color: white !important; }
             
-            /* Hacer visible el panel de resumen en el PDF */
-            .print-summary { 
-                display: block !important; 
-                border: 1px solid #ccc; 
-                margin-bottom: 10px; 
-                background-color: #212529 !important; 
-                color: white !important; 
-                padding: 10px; 
-            }
+            .estado-verde { background-color: #28a745 !important; color: white !important; }
+            .estado-amarillo { background-color: #ffc107 !important; color: black !important; }
+            .estado-rojo { background-color: #dc3545 !important; color: white !important; }
+            
+            .card-header { background-color: #212529 !important; color: white !important; }
+            #global-avance-contr { color: #28a745 !important; }
+            #global-total-ejecutado { color: #17a2b8 !important; }
         }
     </style>
 </head>
@@ -197,7 +203,7 @@
         <div class="col-12">
             <div class="card shadow-sm">
                 <!-- PANEL SUPERIOR CON GLOBALES -->
-                <div class="card-header bg-dark text-white p-2 no-print">
+                <div class="card-header bg-dark text-white p-2">
                     <div class="row text-center align-items-center">
                         <div class="col-4 border-end border-secondary">
                             <div style="font-size: 10px; text-transform: uppercase; color: #adb5bd;">Avance Global</div>
@@ -222,12 +228,14 @@
                                     <th>Sitio</th>
                                     <th class="text-center">Prioridad</th>
                                     <th class="text-center">Contr. (S/)</th>
-                                    <th class="text-center">Avance (%)</th>
+                                    <th class="text-center">Avance Prog. (%)</th>
+                                    <th class="text-center">Avance Ejec. (%)</th>
+                                    <th class="text-center">Estado</th>
                                     <th class="text-center">Ejecutado (S/)</th>
                                 </tr>
                             </thead>
                             <tbody id="budgetTable">
-                                <tr><td colspan="5" class="text-center py-3">Cargando datos de la nube...</td></tr>
+                                <tr><td colspan="7" class="text-center py-3">Cargando datos de la nube...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -260,19 +268,17 @@
 
     function calcularGlobales(sitios) {
         let totalContr = 0;
-        let sumAvanceContr = 0;
         let totalEjecutado = 0;
 
         sitios.forEach(s => {
             let c = Number(s.contrato) || 0;
-            let a = Number(s.avance) || 0;
+            let a = Number(s.avance_ejec) || 0; // CAMBIADO A avance_ejec
 
             totalContr += c;
-            sumAvanceContr += (a * c);
             totalEjecutado += (c * (a / 100));
         });
 
-        let pctContr = totalContr > 0 ? (sumAvanceContr / totalContr) : 0;
+        let pctContr = totalContr > 0 ? (totalEjecutado / totalContr) * 100 : 0;
 
         document.getElementById('global-total-contr').innerText = 'S/ ' + totalContr.toLocaleString('es-PE', {minimumFractionDigits: 2});
         document.getElementById('global-avance-contr').innerText = pctContr.toFixed(2) + '%';
@@ -287,7 +293,7 @@
 
         if (error) {
             console.error("Error cargando datos:", error);
-            tableBody.innerHTML = `<tr><td colspan="5" class="text-danger text-center">Error al conectar con la base de datos.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-danger text-center">Error al conectar con la base de datos. Revisa la consola.</td></tr>`;
             return;
         }
 
@@ -307,15 +313,27 @@
             let iconHtml = `<div class="custom-icon ${claseForma} ${claseColor}"><span>${letraIcono}</span></div>`;
             var customIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [26, 26], iconAnchor: [13, 13] });
 
+            // LEEMOS LAS NUEVAS COLUMNAS
             let contratoVal = sitio.contrato || 0;
-            let avanceVal = sitio.avance || 0;
+            let avanceVal = sitio.avance_ejec || 0; // CAMBIADO A avance_ejec
+            let progVal = sitio.avance_prog || 0;
             
             let contratoFormat = contratoVal > 0 ? 'S/ ' + Number(contratoVal).toLocaleString('es-PE', {minimumFractionDigits: 2}) : '';
             let avanceFormat = avanceVal > 0 ? avanceVal + '%' : '0%';
+            let progFormat = progVal > 0 ? progVal + '%' : '0%';
             
-            // CÁLCULO DEL MONTO EJECUTADO
             let ejecutadoVal = contratoVal * (avanceVal / 100);
             let ejecutadoFormat = 'S/ ' + ejecutadoVal.toLocaleString('es-PE', {minimumFractionDigits: 2});
+
+            let estadoVal = avanceVal - progVal;
+            let estadoClass = "estado-verde";
+            let estadoText = (estadoVal > 0 ? '+' : '') + estadoVal.toFixed(2) + '%';
+
+            if (estadoVal < 0 && estadoVal >= -3) {
+                estadoClass = "estado-amarillo";
+            } else if (estadoVal < -3) {
+                estadoClass = "estado-rojo";
+            }
 
             var marker = L.marker([sitio.lat, sitio.lng], { icon: customIcon }).addTo(markersGroup);
             
@@ -329,7 +347,7 @@
                     <b>Ppto Contr:</b> S/ ${Number(contratoVal).toLocaleString('es-PE')}<br>
                     <b>Ejecutado:</b> ${ejecutadoFormat}<br>
                     <div style="margin-top: 8px; background: #e9ecef; padding: 6px; border-radius: 6px; text-align: center;">
-                        <span style="font-size: 11px; text-transform: uppercase; color: #6c757d;">Avance Actual</span>
+                        <span style="font-size: 11px; text-transform: uppercase; color: #6c757d;">Avance Ejec.</span>
                         <span class="popup-highlight-avance" id="popup-avance-${sitio.id}">${avanceVal}%</span>
                     </div>
                 </div>
@@ -341,11 +359,19 @@
                 <td><strong>${sitio.nombre}</strong><br><small class="text-muted">${sitio.distrito}</small></td>
                 <td class="text-center"><span class="badge badge-${sitio.prioridad.toLowerCase()}">${sitio.prioridad}</span></td>
                 <td class="text-center"><input type="text" class="form-control form-control-sm contrato-input mx-auto" id="contrato-${sitio.id}" value="${contratoFormat}" placeholder="0.00"></td>
+                
                 <td class="text-center">
-                    <div class="input-group input-group-sm mx-auto" style="width: 85px;">
+                    <div class="input-group input-group-sm mx-auto" style="width: 70px;">
+                        <input type="text" class="form-control prog-input text-center" id="prog-${sitio.id}" value="${progFormat}">
+                    </div>
+                </td>
+                <td class="text-center">
+                    <div class="input-group input-group-sm mx-auto" style="width: 70px;">
                         <input type="text" class="form-control avance-input text-center" id="avance-${sitio.id}" value="${avanceFormat}">
                     </div>
                 </td>
+                
+                <td class="text-center"><span class="badge ${estadoClass}" id="estado-${sitio.id}">${estadoText}</span></td>
                 <td class="text-center" id="ejecutado-${sitio.id}">${ejecutadoFormat}</td>
             `;
             tableBody.appendChild(row);
@@ -358,79 +384,80 @@
 
             let inputAvance = document.getElementById(`avance-${sitio.id}`);
             let inputContrato = document.getElementById(`contrato-${sitio.id}`);
+            let inputProg = document.getElementById(`prog-${sitio.id}`);
+            
             let tdEjecutado = document.getElementById(`ejecutado-${sitio.id}`);
+            let badgeEstado = document.getElementById(`estado-${sitio.id}`);
 
-            inputContrato.addEventListener("focus", function() {
-                let raw = this.value.replace(/[^0-9.]/g, ''); 
-                this.value = raw === '0' ? '' : raw;
-            });
+            const setupInputFormatting = (input, isPercent) => {
+                input.addEventListener("focus", function() {
+                    this.value = this.value.replace(/[^0-9.-]/g, ''); 
+                });
+                input.addEventListener("blur", function() {
+                    let raw = this.value.replace(/[^0-9.-]/g, '');
+                    let num = raw === "" ? 0 : parseFloat(raw);
+                    if (isPercent) {
+                        this.value = num + '%';
+                    } else {
+                        this.value = num > 0 ? 'S/ ' + num.toLocaleString('es-PE', {minimumFractionDigits: 2}) : '';
+                    }
+                });
+            };
 
-            inputContrato.addEventListener("blur", async function() {
-                let raw = this.value.replace(/[^0-9.]/g, '');
-                let nuevoContrato = raw === "" ? 0 : parseFloat(raw);
-                
-                if(nuevoContrato > 0) {
-                    this.value = 'S/ ' + nuevoContrato.toLocaleString('es-PE', {minimumFractionDigits: 2});
-                } else {
-                    this.value = '';
-                }
+            setupInputFormatting(inputContrato, false);
+            setupInputFormatting(inputAvance, true);
+            setupInputFormatting(inputProg, true);
 
+            const guardarEnSupabase = async () => {
                 if (document.body.classList.contains('modo-lectura')) return;
                 
-                let nuevoAvance = inputAvance.value.replace(/[^0-9.]/g, '') || 0;
+                let rawContr = inputContrato.value.replace(/[^0-9.-]/g, '');
+                let rawAvan = inputAvance.value.replace(/[^0-9.-]/g, '');
+                let rawProg = inputProg.value.replace(/[^0-9.-]/g, '');
 
+                let nuevoContrato = rawContr === "" ? 0 : parseFloat(rawContr);
+                let nuevoAvance = rawAvan === "" ? 0 : parseFloat(rawAvan);
+                let nuevoProg = rawProg === "" ? 0 : parseFloat(rawProg);
+
+                // GUARDAMOS USANDO LOS NUEVOS NOMBRES DE COLUMNA
                 const { error } = await supabaseClient
                     .from('sitios')
-                    .update({ avance: nuevoAvance, contrato: nuevoContrato })
+                    .update({ 
+                        contrato: nuevoContrato, 
+                        avance_ejec: nuevoAvance, 
+                        avance_prog: nuevoProg 
+                    })
                     .eq('id', sitio.id);
                 
                 if (!error) {
-                    sitio.avance = nuevoAvance;
                     sitio.contrato = nuevoContrato;
-                    calcularGlobales(sitios);
-                    
-                    // Actualizar monto ejecutado en la tabla
+                    sitio.avance_ejec = nuevoAvance;
+                    sitio.avance_prog = nuevoProg;
+
                     let ej = nuevoContrato * (nuevoAvance / 100);
                     tdEjecutado.innerText = 'S/ ' + ej.toLocaleString('es-PE', {minimumFractionDigits: 2});
-                }
-            });
 
-            inputAvance.addEventListener("focus", function() {
-                this.value = this.value.replace(/[^0-9.]/g, '');
-            });
+                    let est = nuevoAvance - nuevoProg;
+                    let nuevaClase = "estado-verde";
+                    let nuevoTexto = (est > 0 ? '+' : '') + est.toFixed(2) + '%';
 
-            inputAvance.addEventListener("blur", async function() {
-                let raw = this.value.replace(/[^0-9.]/g, '');
-                let nuevoAvance = raw === "" ? 0 : parseFloat(raw);
-                this.value = nuevoAvance + '%';
+                    if (est < 0 && est >= -3) nuevaClase = "estado-amarillo";
+                    else if (est < -3) nuevaClase = "estado-rojo";
 
-                if (document.body.classList.contains('modo-lectura')) return;
-                
-                let nuevoContrato = inputContrato.value.replace(/[^0-9.]/g, '') || 0;
+                    badgeEstado.className = `badge ${nuevaClase}`;
+                    badgeEstado.innerText = nuevoTexto;
 
-                const { error } = await supabaseClient
-                    .from('sitios')
-                    .update({ avance: nuevoAvance, contrato: nuevoContrato })
-                    .eq('id', sitio.id);
-                
-                if (!error) {
-                    sitio.avance = nuevoAvance;
-                    sitio.contrato = nuevoContrato;
                     calcularGlobales(sitios);
-                    
-                    // Actualizar monto ejecutado en la tabla
-                    let ej = nuevoContrato * (nuevoAvance / 100);
-                    tdEjecutado.innerText = 'S/ ' + ej.toLocaleString('es-PE', {minimumFractionDigits: 2});
                     
                     let popupAvance = document.getElementById(`popup-avance-${sitio.id}`);
-                    if (popupAvance) {
-                        popupAvance.innerText = nuevoAvance + "%";
-                    }
+                    if (popupAvance) popupAvance.innerText = nuevoAvance + "%";
                 }
-            });
+            };
 
-            inputAvance.addEventListener("keydown", function(e) { if (e.key === 'Enter') this.blur(); });
-            inputContrato.addEventListener("keydown", function(e) { if (e.key === 'Enter') this.blur(); });
+            [inputContrato, inputAvance, inputProg].forEach(input => {
+                input.addEventListener("blur", guardarEnSupabase);
+                input.addEventListener("keydown", function(e) { if (e.key === 'Enter') this.blur(); });
+            });
         });
 
         calcularGlobales(sitios);
