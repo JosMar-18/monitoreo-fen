@@ -26,7 +26,9 @@
         #map { height: 45vh; width: 100%; border-radius: 8px; border: 2px solid #333; z-index: 1; }
         
         .table-responsive { max-height: 38vh; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .table { min-width: 550px; }
+        
+        /* AUMENTAMOS EL ANCHO MÍNIMO DE LA TABLA */
+        .table { min-width: 650px; }
         
         /* ENCABEZADOS DE LA TABLA - AZUL MEDIO */
         .table th { 
@@ -40,10 +42,10 @@
             border-bottom: 2px solid #154360;
         }
         
-        /* EL ARREGLO: Espacio extra solo al final de la tabla (Aumentado a 80px) */
+        /* COLCHÓN INVISIBLE MÁS GRANDE (150px) AL FINAL */
         .table th:last-child, 
         .table td:last-child {
-            padding-right: 80px !important; 
+            padding-right: 150px !important; 
         }
         
         /* =========================================
@@ -145,7 +147,7 @@
             
             .table th:first-child, .table td:first-child { position: static; box-shadow: none; }
             .table th:first-child::after, .table td:first-child::after { display: none; } 
-            /* Normalizar el margen derecho en el PDF para que no quede un espacio en blanco gigante */
+            /* Normalizar el margen derecho en el PDF */
             .table th:last-child, .table td:last-child { padding-right: 8px !important; } 
         }
     </style>
