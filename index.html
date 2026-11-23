@@ -20,15 +20,44 @@
         #map { height: 45vh; width: 100%; border-radius: 8px; border: 2px solid #333; z-index: 1; }
         
         .table-responsive { max-height: 38vh; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .table { min-width: 500px; } /* Reducido porque hay menos columnas */
+        .table { min-width: 550px; /* Ajustado para que quepa bien en móvil */ }
         .table th { position: sticky; top: 0; z-index: 2; background-color: #212529 !important; color: white; font-size: 0.75rem; white-space: nowrap; }
         
+        /* =========================================
+           MAGIA: COLUMNA DEL SITIO FIJA (STICKY)
+           ========================================= */
+        .table th:first-child,
+        .table td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 2;
+            background-color: #ffffff; /* Fondo sólido para que no se transparente */
+        }
+        
+        /* El encabezado del Sitio debe estar por encima de todo */
+        .table th:first-child {
+            z-index: 3;
+            background-color: #212529 !important;
+        }
+
+        /* Sombra a la derecha de la columna fija para dar efecto 3D */
+        .table td:first-child {
+            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.15);
+        }
+
+        /* Mantener los colores del fondo rayado (striped) en la columna fija */
+        .table-striped > tbody > tr:nth-of-type(odd) > td:first-child {
+            background-color: #f2f2f2; 
+        }
+        .table-hover > tbody > tr:hover > td:first-child {
+            background-color: #e9ecef;
+        }
+
+        /* ========================================= */
+        
         .clickable-row { cursor: pointer; transition: background-color 0.2s; }
-        .clickable-row:hover { background-color: #e9ecef !important; }
         
         .avance-input { width: 65px; text-align: center; }
-        
-        /* Casilla del contrato */
         .contrato-input { width: 130px !important; padding: 0.25rem 0.5rem; text-align: center; }
         .form-control-sm { font-size: 16px; }
         
@@ -40,7 +69,7 @@
             box-shadow: none;
             color: #333;
             text-align: center;
-            padding: 0; /* Quita márgenes internos para alinear perfecto */
+            padding: 0;
         }
         .modo-lectura .contrato-input { font-weight: normal; font-size: 0.85rem; }
         .modo-lectura .avance-input { font-weight: bold; text-align: center; }
@@ -65,13 +94,14 @@
         .badge-media { background-color: #ffc107; color: black; }
         .badge-baja { background-color: #28a745; color: white; }
 
-        /* Estilos para impresión de reporte */
         @media print {
             body { background-color: white; }
             #map, .no-print, .card-header, .table-responsive { overflow: visible !important; max-height: none !important; }
             .no-print { display: none !important; }
             .table { min-width: 100% !important; font-size: 12px; }
             .contrato-input, .avance-input { border: none; font-weight: normal; text-align: center; padding: 0; }
+            /* En impresión, quitamos el sticky para que la tabla sea normal */
+            .table th:first-child, .table td:first-child { position: static; box-shadow: none; background-color: transparent; }
         }
     </style>
 </head>
