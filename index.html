@@ -26,8 +26,8 @@
         .clickable-row { cursor: pointer; transition: background-color 0.2s; }
         .clickable-row:hover { background-color: #e9ecef !important; }
         
-        .avance-input { width: 50px; text-align: center; }
-        .contrato-input { width: 85px !important; padding: 0.25rem 0.5rem; text-align: right; }
+        .avance-input { width: 65px; text-align: center; }
+        .contrato-input { width: 100px !important; padding: 0.25rem 0.5rem; text-align: right; }
         .form-control-sm { font-size: 16px; }
         
         /* Bloquear inputs cuando no está en modo edición */
@@ -38,9 +38,9 @@
             box-shadow: none;
             color: #333;
             font-weight: bold;
-            text-align: center;
+            text-align: right;
         }
-        .modo-lectura .contrato-input { text-align: right; }
+        .modo-lectura .avance-input { text-align: center; }
         .modo-lectura .input-group-text { display: none; }
 
         /* Estilos de los Tooltips e Íconos */
@@ -97,7 +97,7 @@
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <!-- NUEVO PANEL SUPERIOR CON GLOBALES -->
+                <!-- PANEL SUPERIOR CON GLOBALES -->
                 <div class="card-header bg-dark text-white p-2">
                     <div class="row text-center align-items-center">
                         <div class="col-6 col-md-3 border-end border-secondary">
@@ -178,12 +178,10 @@
             totalProg += p;
             totalContr += c;
             
-            // Cálculo ponderado
             sumAvanceProg += (a * p);
             sumAvanceContr += (a * c);
         });
 
-        // Evitar división por cero
         let pctProg = totalProg > 0 ? (sumAvanceProg / totalProg) : 0;
         let pctContr = totalContr > 0 ? (sumAvanceContr / totalContr) : 0;
 
@@ -224,6 +222,10 @@
 
             let contratoVal = sitio.contrato || 0;
             let avanceVal = sitio.avance || 0;
+            
+            // Formatear los valores para que se vean bonitos desde el inicio
+            let contratoFormat = contratoVal > 0 ? Number(contratoVal).toLocaleString('es-PE', {minimumFractionDigits: 2}) : '';
+            let avanceFormat = avanceVal > 0 ? avanceVal + '%' : '0%';
 
             var marker = L.marker([sitio.lat, sitio.lng], { icon: customIcon }).addTo(markersGroup);
             
@@ -249,11 +251,10 @@
                 <td><strong>${sitio.nombre}</strong><br><small class="text-muted">${sitio.distrito}</small></td>
                 <td><span class="badge badge-${sitio.prioridad.toLowerCase()}">${sitio.prioridad}</span></td>
                 <td>S/ ${sitio.prog.toLocaleString('es-PE', {minimumFractionDigits: 2})}</td>
-                <td><input type="number" class="form-control form-control-sm contrato-input" id="contrato-${sitio.id}" value="${contratoVal}" placeholder="0.00"></td>
+                <td><input type="text" class="form-control form-control-sm contrato-input" id="contrato-${sitio.id}" value="${contratoFormat}" placeholder="0.00"></td>
                 <td>
                     <div class="input-group input-group-sm" style="width: 85px;">
-                        <input type="number" class="form-control avance-input" id="avance-${sitio.id}" value="${avanceVal}" min="0" max="100">
-                        <span class="input-group-text" style="padding: 0.25rem 0.4rem;">%</span>
+                        <input type="text" class="form-control avance-input" id="avance-${sitio.id}" value="${avanceFormat}">
                     </div>
                 </td>
             `;
@@ -268,49 +269,79 @@
             let inputAvance = document.getElementById(`avance-${sitio.id}`);
             let inputContrato = document.getElementById(`contrato-${sitio.id}`);
 
-            const guardarEnSupabase = async () => {
+            // --- MAGIA PARA FORMATEAR AL ENTRAR Y SALIR DE LA CASILLA ---
+            
+            // Contrato: Al entrar, quitar 'S/' y comas para facilitar escritura
+            inputContrato.addEventListener("focus", function() {
+                let raw = this.value.replace(/[^0-9.]/g, ''); 
+                this.value = raw === '0' ? '' : raw;
+            });
+
+            // Contrato: Al salir, formatear bonito
+            inputContrato.addEventListener("blur", async function() {
+                let raw = this.value.replace(/[^0-9.]/g, '');
+                let nuevoContrato = raw === "" ? 0 : parseFloat(raw);
+                
+                if(nuevoContrato > 0) {
+                    this.value = 'S/ ' + nuevoContrato.toLocaleString('es-PE', {minimumFractionDigits: 2});
+                } else {
+                    this.value = '';
+                }
+
                 if (document.body.classList.contains('modo-lectura')) return;
                 
-                let nuevoAvance = inputAvance.value === "" ? 0 : inputAvance.value;
-                let nuevoContrato = inputContrato.value === "" ? 0 : inputContrato.value;
+                let nuevoAvance = inputAvance.value.replace(/[^0-9.]/g, '') || 0;
 
                 const { error } = await supabaseClient
                     .from('sitios')
                     .update({ avance: nuevoAvance, contrato: nuevoContrato })
                     .eq('id', sitio.id);
                 
-                if (error) {
-                    console.error("Error al guardar:", error);
-                } else {
-                    // Actualizar objeto local para recalcular globales
+                if (!error) {
                     sitio.avance = nuevoAvance;
                     sitio.contrato = nuevoContrato;
-                    
-                    // Recalcular los totales en la parte superior
                     calcularGlobales(sitios);
+                }
+            });
 
-                    // Actualizar el popup si está abierto
+            // Avance: Al entrar, quitar '%'
+            inputAvance.addEventListener("focus", function() {
+                this.value = this.value.replace(/[^0-9.]/g, '');
+            });
+
+            // Avance: Al salir, poner '%' y guardar
+            inputAvance.addEventListener("blur", async function() {
+                let raw = this.value.replace(/[^0-9.]/g, '');
+                let nuevoAvance = raw === "" ? 0 : parseFloat(raw);
+                this.value = nuevoAvance + '%';
+
+                if (document.body.classList.contains('modo-lectura')) return;
+                
+                let nuevoContrato = inputContrato.value.replace(/[^0-9.]/g, '') || 0;
+
+                const { error } = await supabaseClient
+                    .from('sitios')
+                    .update({ avance: nuevoAvance, contrato: nuevoContrato })
+                    .eq('id', sitio.id);
+                
+                if (!error) {
+                    sitio.avance = nuevoAvance;
+                    sitio.contrato = nuevoContrato;
+                    calcularGlobales(sitios);
+                    
                     let popupAvance = document.getElementById(`popup-avance-${sitio.id}`);
                     if (popupAvance) {
                         popupAvance.innerText = nuevoAvance + "%";
                     }
                 }
-            };
+            });
 
-            inputAvance.addEventListener("blur", guardarEnSupabase);
-            inputContrato.addEventListener("blur", guardarEnSupabase);
-            
-            inputAvance.addEventListener("keydown", function(e) {
-                if (e.key === 'Enter') { this.blur(); }
-            });
-            inputContrato.addEventListener("keydown", function(e) {
-                if (e.key === 'Enter') { this.blur(); }
-            });
+            // Guardar al presionar Enter
+            inputAvance.addEventListener("keydown", function(e) { if (e.key === 'Enter') this.blur(); });
+            inputContrato.addEventListener("keydown", function(e) { if (e.key === 'Enter') this.blur(); });
         });
 
-        // Calcular globales la primera vez que carga la página
         calcularGlobales(sitios);
-
         map.fitBounds(markersGroup.getBounds(), { padding: [30, 30] });
     }
 
