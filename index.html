@@ -41,7 +41,7 @@
         }
         
         /* =========================================
-           COLUMNA DEL SITIO FIJA (STICKY)
+           COLUMNA DEL SITIO FIJA (STICKY) - SOLUCIÓN DEFINITIVA
            ========================================= */
         .table th:first-child,
         .table td:first-child {
@@ -49,15 +49,29 @@
             left: 0;
             z-index: 2;
             background-color: #ffffff;
-            border-right: 2px solid #adb5bd;
+            /* Quitamos el border-right porque causaba el error al deslizar */
+            border-right: none; 
         }
         
-        .table th:first-child {
-            z-index: 3;
-            background-color: #1e6091 !important; /* MISMO AZUL MEDIO PARA EL ENCABEZADO FIJO */
-            border-right: 2px solid #adb5bd;
+        /* La magia: Dibujamos la línea vertical por encima de todo usando un pseudo-elemento */
+        .table th:first-child::after,
+        .table td:first-child::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: -2px; /* Desplazamos un poco para que cubra el borde */
+            bottom: 0;
+            width: 2px;
+            background-color: #adb5bd; /* Color de la línea */
+            z-index: 10;
         }
 
+        .table th:first-child {
+            z-index: 3;
+            background-color: #1e6091 !important; 
+        }
+
+        /* Sombra sutil */
         .table td:first-child {
             box-shadow: 4px 0 6px -3px rgba(0,0,0,0.2);
         }
@@ -126,7 +140,9 @@
             .card-header { background-color: #212529 !important; color: white !important; }
             #global-avance-contr { color: #28a745 !important; }
             
-            .table th:first-child, .table td:first-child { position: static; box-shadow: none; border-right: none; }
+            /* En impresión quitamos la columna fija para que se vea como tabla normal */
+            .table th:first-child, .table td:first-child { position: static; box-shadow: none; }
+            .table th:first-child::after, .table td:first-child::after { display: none; } /* Ocultar línea extra en PDF */
         }
     </style>
 </head>
